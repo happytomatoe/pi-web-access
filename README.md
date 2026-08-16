@@ -224,16 +224,14 @@ PDF URLs are converted to Markdown and saved under the temporary `pi-web-pdf` di
 
 Configure Datalab via the web-search config:
 
-```jsonc
-{
-  "datalabApiKey": "$DATALAB_API_KEY",
-  "pdf": {
-    "maxSizeMB": 20,
-    "provider": "auto",      // "auto" | "gemini" | "datalab" | "unpdf"
-    "datalabMode": "balanced", // "fast" | "balanced" | "accurate"
-    "datalabTimeoutMs": 120000
-  }
-}
+```toml
+datalabApiKey = "$DATALAB_API_KEY"
+
+[pdf]
+maxSizeMB = 20
+provider = "auto"        # "auto" | "gemini" | "datalab" | "unpdf"
+datalabMode = "balanced" # "fast" | "balanced" | "accurate"
+datalabTimeoutMs = 120000
 ```
 
 Env vars: `DATALAB_API_KEY` (or `datalabApiKey` in config), `DATALAB_PROCESSING_LOCATION` (`us` default; `eu` enables EU data residency at 1.25× usage), `DATALAB_MODE` (`fast` / `balanced` / `accurate`), and `DATALAB_API_BASE` (custom gateway). `pdf.datalabMode` overrides `DATALAB_MODE`. The default `datalabTimeoutMs` is 120s and is capped at 300s.
@@ -313,124 +311,19 @@ Toggle with **Ctrl+Shift+W** to see live request/response activity:
 
 Config defaults to `~/.pi/web-search.toml`, or `web-search.toml` under `PI_CODING_AGENT_DIR` / `XDG_CONFIG_HOME/pi` when set. Every field is optional.
 
-```json
-{
-  "openaiApiKey": "sk-...",
-  "openaiResponsesUrl": "https://gateway.example.com/v1/responses",
-  "braveApiKey": "BSA_...",
-  "exaApiKey": "exa-...",
-  "parallelApiKey": "...",
-  "tinyfishApiKey": "sk-tinyfish-...",
-  "search1apiApiKey": "...",
-  "tavilyApiKey": "tvly-...",
-  "jinaApiKey": "$JINA_API_KEY",
-  "serpdiveApiKey": "sd_live_...",
-  "serpdiveModel": "krill",
-  "kagiApiKey": "$KAGI_API_KEY",
-  "ollamaApiKey": "$OLLAMA_API_KEY",
-  "serpbaseApiKey": "$SERPBASE_API_KEY",
-  "brightdataApiKey": "$BRIGHTDATA_API_KEY",
-  "brightdataSerpZone": "pi_serp",
-  "searxngBaseUrl": "https://search.example.com",
-  "searxngHeaders": {
-    "CF-Access-Client-Id": "xxxxxxxx.access",
-    "CF-Access-Client-Secret": "xxxxxxxx"
-  },
-  "firecrawlBaseUrl": "https://crawl.example.com",
-  "firecrawlApiKey": "fc-...",
-  "firecrawlApiVersion": "v2",
-  "firecrawlFreshScrape": false,
-  "brightdataUnlockerZone": "pi_unlocker",
-  "perplexityApiKey": "pplx-...",
-  "geminiApiKey": "AIza...",
-  "geminiBaseUrl": "https://my-gateway.example.com/gemini",
-  "cloudflareApiKey": "...",
-  "provider": "openai",
-  "searchRouting": {
-    "providers": ["openai", "brave", "exa"],
-    "fallbackOn": ["transient", "quota", "network", "invalid-response"]
-  },
-  "fetchRouting": {
-    "providers": ["http", "firecrawl", "jina", "tinyfish", "search1api", "querit", "kagi", "ollama", "parallel", "brightdata", "gemini"],
-    "allowRemoteHostedProviders": false
-  },
-  "webSearch": {
-    "enabled": true
-  },
-  "tools": {
-    "webSearch": { "enabled": true },
-    "sourceCheck": { "enabled": true },
-    "fetchContent": { "enabled": true },
-    "getSearchContent": { "enabled": true }
-  },
-  "commands": {
-    "websearch": { "enabled": true },
-    "curator": { "enabled": true },
-    "search": { "enabled": true },
-    "google-account": { "enabled": true }
-  },
-  "image": {
-    "enabled": true
-  },
-  "chromeProfile": "Profile 2",
-  "allowBrowserCookies": false,
-  "searchModel": "gemini-3.6-flash",
-  "summaryModel": "anthropic/claude-haiku-4-5",
-  "summaryGenerationDeadlineMs": 30000,
-  "maxInlineContentChars": 30000,
-  "workflow": "summary-review",
-  "curatorTimeoutSeconds": 20,
-  "curatorRemote": {
-    "host": "my-box.tailnet.ts.net",
-    "bind": "100.101.102.103"
-  },
-  "autoOpenBrowser": true,
-  "githubClone": {
-    "enabled": true,
-    "maxRepoSizeMB": 350,
-    "cloneTimeoutSeconds": 30,
-    "clonePath": "/tmp/pi-github-repos"
-  },
-  "youtube": {
-    "enabled": true,
-    "preferredModel": "gemini-3.6-flash"
-  },
-  "video": {
-    "enabled": true,
-    "preferredModel": "gemini-3.6-flash",
-    "maxSizeMB": 50
-  },
-  "pdf": {
-    "enabled": true,
-    "maxSizeMB": 20,
-    "provider": "auto"
-  },
-  "fetchContent": {
-    "domainPolicy": {
-      "allow": ["example.com"],
-      "deny": ["blocked.example.com"]
-    }
-  },
-  "shortcuts": {
-    "curate": "ctrl+shift+s",
-    "activity": "ctrl+shift+w"
-  },
-  "ssrf": {
-    "allowRanges": ["198.18.0.0/15"],
-    "trustEnvProxy": false
-  }
-}
+See [`config-template.toml`](config-template.toml) for the full reference with every field documented and commented. You can copy it directly:
+
+```bash
+cp config-template.toml ~/.pi/web-search.toml
 ```
 
 All provider API-key fields (`openaiApiKey`, `braveApiKey`, `parallelApiKey`, `tinyfishApiKey`, `search1apiApiKey`, `searchinfinityApiKey`, `queritApiKey`, `tavilyApiKey`, `jinaApiKey`, `serpdiveApiKey`, `kagiApiKey`, `bochaApiKey`, `ollamaApiKey`, `serpbaseApiKey`, `anysearchApiKey`, `xaiApiKey`, `brightdataApiKey`, `firecrawlApiKey`, `exaApiKey`, `perplexityApiKey`, `geminiApiKey`, `datalabApiKey`, and `cloudflareApiKey`) accept explicit credential sources. Use `$NAME` or `${NAME}` to read one named environment variable, or prefix a trusted local shell command with `!` to resolve one value at provider request time. Escape `$$` as a literal leading `$` and `$!` as a literal leading `!`:
 
-```json
-{
-  "openaiApiKey": "!/absolute/path/to/secret-manager read openai",
-  "braveApiKey": "${SCOPED_BRAVE_API_KEY}",
-  "exaApiKey": "$$literal-key",
-  "geminiApiKey": "$!literal-command"
-}
+```toml
+openaiApiKey = "!/absolute/path/to/secret-manager read openai"
+braveApiKey = "${SCOPED_BRAVE_API_KEY}"
+exaApiKey = "$$literal-key"
+geminiApiKey = "$!literal-command"
 ```
 
 This syntax applies to provider credentials only; other configuration fields are not interpolated. `firecrawlApiKey`, `kagiApiKey`, `ollamaApiKey`, `serpbaseApiKey`, and `brightdataApiKey` use the same credential-source rules, while `firecrawlBaseUrl`, `firecrawlApiVersion`, `firecrawlFreshScrape`, `brightdataSerpZone`, and `brightdataUnlockerZone` are literal config values.
@@ -471,11 +364,9 @@ Successful provider answers are preserved separately while source URLs and inlin
 
 `jinaApiKey` enables [Jina Search](https://s.jina.ai); alternatively, set `JINA_API_KEY`. The key may be a literal, an environment-variable reference, or a trusted command credential source:
 
-```json
-{
-  "jinaApiKey": "$JINA_API_KEY",
-  "provider": "jina"
-}
+```toml
+jinaApiKey = "$JINA_API_KEY"
+provider = "jina"
 ```
 
 Setting `provider` is optional. In `auto` mode, Jina is tried after Firecrawl and before SERPdive. It can also be selected per request with `provider: "jina"`, included in provider arrays or `provider: "all"`, or placed in `searchRouting.providers`.
@@ -486,11 +377,9 @@ Jina Search maps `numResults` to its bounded `count` parameter, sends included d
 
 `tinyfishApiKey` enables the TinyFish Search and Fetch APIs; alternatively, set `TINYFISH_API_KEY`. Get an API key from the [TinyFish API Keys](https://agent.tinyfish.ai/api-keys) page. Like the other provider keys, `tinyfishApiKey` can contain a literal key, an environment-variable reference, or a trusted command credential source:
 
-```json
-{
-  "tinyfishApiKey": "$TINYFISH_API_KEY",
-  "provider": "tinyfish"
-}
+```toml
+tinyfishApiKey = "$TINYFISH_API_KEY"
+provider = "tinyfish"
 ```
 
 Setting `provider` is optional. In `auto` mode, an available TinyFish provider is tried after Parallel and before Search1API. You can also select it per request with `provider: "tinyfish"` or place `"tinyfish"` in `searchRouting.providers`.
@@ -503,11 +392,9 @@ The stable Search (`https://api.search.tinyfish.ai`) and Fetch (`https://api.fet
 
 `search1apiApiKey` enables [Search1API](https://www.search1api.com) Search and Crawl; alternatively, set `SEARCH1API_KEY`. Create a key in the [Search1API dashboard](https://dashboard.search1api.com). Like the other provider keys, `search1apiApiKey` can contain a literal key, an environment-variable reference, or a trusted command credential source:
 
-```json
-{
-  "search1apiApiKey": "$SEARCH1API_KEY",
-  "provider": "search1api"
-}
+```toml
+search1apiApiKey = "$SEARCH1API_KEY"
+provider = "search1api"
 ```
 
 Setting `provider` is optional. In `auto` mode, an available Search1API provider is tried after TinyFish and before Searchinfinity. You can also select it per request with `provider: "search1api"`, include it in provider arrays or `provider: "all"`, or place `"search1api"` in `searchRouting.providers`.
@@ -520,11 +407,9 @@ Search1API is credit-based. A basic search costs 1 credit; Deep Search adds 1 cr
 
 `searchinfinityApiKey` enables [Byteplus Searchinfinity](https://docs.byteplus.com/en/docs/searchinfinity/) web search (the Global edition of Volcengine 豆包搜索); alternatively, set `SEARCHINFINITY_API_KEY`. Create a key in the [Searchinfinity console](https://console.byteplus.com/search-infinity/api-key). Like the other provider keys, `searchinfinityApiKey` can contain a literal key, an environment-variable reference, or a trusted command credential source:
 
-```json
-{
-  "searchinfinityApiKey": "$SEARCHINFINITY_API_KEY",
-  "provider": "searchinfinity"
-}
+```toml
+searchinfinityApiKey = "$SEARCHINFINITY_API_KEY"
+provider = "searchinfinity"
 ```
 
 Setting `provider` is optional. In `auto` mode, an available Searchinfinity provider is tried after Search1API and before Querit. You can also select it per request with `provider: "searchinfinity"`, include it in provider arrays or `provider: "all"`, or place `"searchinfinity"` in `searchRouting.providers`.
@@ -535,11 +420,9 @@ Searchinfinity Search supports the shared `numResults` (max 20 per request), `re
 
 `queritApiKey` enables Querit Search and Contents; alternatively, set `QUERIT_API_KEY`. Create a key in the [Querit dashboard](https://www.querit.ai/en/dashboard/api-keys). Like the other provider keys, `queritApiKey` can contain a literal key, an environment-variable reference, or a trusted command credential source:
 
-```json
-{
-  "queritApiKey": "$QUERIT_API_KEY",
-  "provider": "querit"
-}
+```toml
+queritApiKey = "$QUERIT_API_KEY"
+provider = "querit"
 ```
 
 Setting `provider` is optional. In `auto` mode, an available Querit provider is tried after Searchinfinity and before Tavily. You can also select it per request with `provider: "querit"`, include it in provider arrays or `provider: "all"`, or place `"querit"` in `searchRouting.providers`.
@@ -581,12 +464,10 @@ It needs two settings, and it reports itself unavailable until both are present 
 it cannot use, so a typo makes Bright Data unavailable rather than breaking `web_search` for the
 providers that are configured correctly:
 
-```json
-{
-  "brightdataApiKey": "$BRIGHTDATA_API_KEY",
-  "brightdataSerpZone": "pi_serp",
-  "provider": "brightdata"
-}
+```toml
+brightdataApiKey = "$BRIGHTDATA_API_KEY"
+brightdataSerpZone = "pi_serp"
+provider = "brightdata"
 ```
 
 `brightdataApiKey` (or `BRIGHTDATA_API_KEY`) is your account API token from
@@ -728,21 +609,16 @@ By default the curator HTTP server binds to `127.0.0.1` and hands out a `http://
 
 Opt in when Pi runs somewhere other than where your browser is — a dev box you SSH into, a container, a remote workstation on a Tailscale/WireGuard network:
 
-```json
-{
-  "curatorRemote": true
-}
+```toml
+curatorRemote = true
 ```
 
 `true` derives both values: the URL host becomes `os.hostname()` and the server binds `0.0.0.0`. Either can be overridden, and you should usually override `bind`:
 
-```json
-{
-  "curatorRemote": {
-    "host": "my-box.tailnet.ts.net",
-    "bind": "100.101.102.103"
-  }
-}
+```toml
+[curatorRemote]
+host = "my-box.tailnet.ts.net"
+bind = "100.101.102.103"
 ```
 
 | Value | URL host | Bind address |
@@ -765,10 +641,8 @@ Remote curator sessions print the URL instead of trying to open a browser by def
 
 `autoOpenBrowser` is also useful on its own for local sessions:
 
-```json
-{
-  "autoOpenBrowser": false
-}
+```toml
+autoOpenBrowser = false
 ```
 
 When `false`, the extension never tries to open a Glimpse window or a browser and always prints the URL for you to open manually. For local-only sessions it defaults to `true`; remote curator sessions print the URL unless you set `autoOpenBrowser: true` explicitly. This is worth setting locally when you would rather paste the link into a specific browser than have one launched for you. It changes nothing about where the server binds; that is `curatorRemote`'s job alone.
@@ -777,13 +651,10 @@ When `false`, the extension never tries to open a Glimpse window or a browser an
 
 Both shortcuts are configurable via `~/.pi/web-search.toml`:
 
-```json
-{
-  "shortcuts": {
-    "curate": "ctrl+shift+s",
-    "activity": "ctrl+shift+w"
-  }
-}
+```toml
+[shortcuts]
+curate = "ctrl+shift+s"
+activity = "ctrl+shift+w"
 ```
 
 Values use the same format as pi keybindings (e.g. `ctrl+s`, `ctrl+shift+s`, `alt+r`). Changes take effect on next pi restart.
