@@ -12,7 +12,8 @@ provider = "auto"
 # Search workflow: "none", "summary-review", "auto-summary"
 # none = return raw results
 # summary-review = AI summary with review
-# auto-summary = auto-generate summary
+# auto-summary = uses a side model (e.g. haiku) to summarize
+# Falls back to deterministic summary if no model available
 workflow = "none"
 
 # === API Keys (uncomment to enable) ===
