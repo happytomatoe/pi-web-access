@@ -3407,7 +3407,13 @@ export default function (pi: ExtensionAPI) {
 		description: "Show path to web-search.json config file",
 		handler: async (_args, ctx) => {
 			const configPath = getWebSearchConfigPath();
-			ctx.ui.notify(`Config file: ${configPath}`, "info");
+			const { existsSync, writeFileSync } = await import("node:fs");
+			if (!existsSync(configPath)) {
+				writeFileSync(configPath, JSON.stringify({ provider: "auto" }, null, 2) + "\n");
+				ctx.ui.notify(`Created config file: ${configPath}`, "info");
+			} else {
+				ctx.ui.notify(`Config file: ${configPath}`, "info");
+			}
 		},
 	});
 }
