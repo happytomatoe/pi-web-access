@@ -3410,7 +3410,8 @@ export default function (pi: ExtensionAPI) {
 			const configPath = getWebSearchConfigPath();
 			const { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } = await import("node:fs");
 			const { dirname } = await import("node:path");
-			const templatePath = new URL("./config-template.toml", import.meta.url).pathname;
+			const { fileURLToPath } = await import("node:url");
+			const templatePath = fileURLToPath(new URL("./config-template.toml", import.meta.url));
 			
 			if (!existsSync(configPath)) {
 				const dir = dirname(configPath);
@@ -3418,7 +3419,8 @@ export default function (pi: ExtensionAPI) {
 				copyFileSync(templatePath, configPath);
 				ctx.ui.notify(`Created: ${configPath}`, "info");
 			} else {
-				ctx.ui.notify(`Config: ${configPath}`, "info");
+				ctx.ui.notify(`Edit config at ${configPath}`, "info");
+			}
 			}
 		},
 	});

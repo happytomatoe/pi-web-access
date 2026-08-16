@@ -34,6 +34,7 @@
   "homepage": "https://github.com/nicobailon/pi-web-access#readme",
   "files": [
     "*.ts",
+    "config-template.toml",
     "CHANGELOG.md",
     "SECURITY.md",
     "banner.png",
