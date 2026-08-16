@@ -14,13 +14,6 @@ import type { SearchResult } from "./perplexity.ts";
 import { formatSeconds, getWebSearchConfigDir, getWebSearchConfigPath, resolveCuratorNetworkConfig } from "./utils.ts";
 import { loadConfig } from "./utils.ts";
 
-const DEBUG = process.env.PI_WEB_ACCESS_DEBUG === "1";
-function debugLog(...args: unknown[]) {
-	if (!DEBUG) return;
-	const fs = require("fs") as typeof import("fs");
-	const line = args.map(a => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-	fs.appendFileSync("/tmp/pi-web-access.log", `${new Date().toISOString()} ${line}\n`);
-}
 import {
 	clearResults,
 	deleteResult,
@@ -198,10 +191,8 @@ function parseConfigRoot(raw: string): Record<string, unknown> {
 	let parsed: unknown;
 	try {
 		parsed = parseToml(raw);
-		debugLog("parseToml type:", typeof parseToml);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		debugLog("parseConfigRoot error:", message);
 		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
 	}
 	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -301,7 +292,6 @@ function loadConfigForExtensionInit(): WebSearchConfig {
 		return loadConfig();
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		debugLog("loadConfigForExtensionInit error:", message);
 		return {};
 	}
 }

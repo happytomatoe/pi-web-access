@@ -2,13 +2,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir, hostname } from "node:os";
 import { join } from "node:path";
 
-const DEBUG = process.env.PI_WEB_ACCESS_DEBUG === "1";
-function debugLog(...args: unknown[]) {
-	if (!DEBUG) return;
-	const line = args.map(a => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-	require("fs").appendFileSync("/tmp/pi-web-access.log", `${new Date().toISOString()} ${line}\n`);
-}
-
 export function getWebSearchConfigDir(): string {
 	if (process.env.PI_CODING_AGENT_DIR) return process.env.PI_CODING_AGENT_DIR;
 	if (process.env.XDG_CONFIG_HOME) return join(process.env.XDG_CONFIG_HOME, "pi");
@@ -49,8 +42,8 @@ export function loadConfig(): Record<string, unknown> {
 
 /** Resolves the curator server bind address and URL host from `curatorRemote`. */
 export function resolveCuratorNetworkConfig(): CuratorNetworkConfig {
-	const raw = loadConfigRoot();
-	if (!raw) return LOCAL_CURATOR_NETWORK_DEFAULTS;
+	const raw = loadConfig();
+	if (!raw || Object.keys(raw).length === 0) return LOCAL_CURATOR_NETWORK_DEFAULTS;
 
 	const curatorRemote = (raw as Record<string, unknown>).curatorRemote;
 	if (curatorRemote === true) return { enabled: true, host: hostname(), bind: "0.0.0.0" };
