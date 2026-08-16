@@ -3410,19 +3410,15 @@ export default function (pi: ExtensionAPI) {
 			const configPath = getWebSearchConfigPath();
 			const { existsSync, writeFileSync, mkdirSync } = await import("node:fs");
 			const { dirname } = await import("node:path");
-			const templatePath = new URL("./config-template.toml", import.meta.url).pathname;
 			
-			let created = false;
 			if (!existsSync(configPath)) {
 				const dir = dirname(configPath);
 				if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 				writeFileSync(configPath, `provider = "auto"\nworkflow = "none"\n`);
-				created = true;
+				ctx.ui.notify(`Created: ${configPath}`, "info");
+			} else {
+				ctx.ui.notify(`Config: ${configPath}`, "info");
 			}
-			
-			let msg = created ? `Created: ${configPath}\n` : `Config: ${configPath}\n`;
-			msg += `Template: ${templatePath}`;
-			ctx.ui.notify(msg, "info");
 		},
 	});
 }
