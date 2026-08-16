@@ -48,10 +48,11 @@
     "linkedom": "^0.16.0",
     "p-limit": "^6.1.0",
     "promise.try": "^2.0.1",
+    "smol-toml": "^1.8.0",
     "turndown": "^7.2.0",
     "typebox": "^1.1.38",
-    "unpdf": "^1.6.2",
-    "undici": "^8.9.0"
+    "undici": "^8.9.0",
+    "unpdf": "^1.6.2"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

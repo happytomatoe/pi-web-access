@@ -1,5 +1,6 @@
 import type { AgentToolResult, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Box, Text, truncateToWidth, type KeyId } from "@earendil-works/pi-tui";
+import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 import { Type } from "typebox";
 import { StringEnum, complete, type Api, type ImageContent, type Model, type TextContent } from "@earendil-works/pi-ai/compat";
 import type { ExtractedContent, ExtractOptions } from "./extract.ts";
@@ -187,13 +188,13 @@ interface CuratorBootstrap {
 function parseConfigRoot(raw: string): Record<string, unknown> {
 	let parsed: unknown;
 	try {
-		parsed = JSON.parse(raw);
+		parsed = parseToml(raw);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
 	}
 	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-		throw new Error(`Invalid config in ${WEB_SEARCH_CONFIG_PATH}: expected a JSON object`);
+		throw new Error(`Invalid config in ${WEB_SEARCH_CONFIG_PATH}: expected an object`);
 	}
 	return parsed as Record<string, unknown>;
 }
@@ -212,7 +213,7 @@ function saveConfig(updates: Partial<WebSearchConfig>): void {
 	Object.assign(config, updates);
 	const dir = getWebSearchConfigDir();
 	if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-	writeFileSync(WEB_SEARCH_CONFIG_PATH, JSON.stringify(config, null, 2) + "\n");
+	writeFileSync(WEB_SEARCH_CONFIG_PATH, stringifyToml(config) + "\n");
 }
 
 type ToolNames = {
@@ -3402,20 +3403,19 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
-	// Show path to web-search.json config
+	// Show path to web-search.toml config
 	pi.registerCommand("web-access:settings", {
-		description: "Show path to web-search.json config file",
+		description: "Show path to web-search.toml config file",
 		handler: async (_args, ctx) => {
 			const configPath = getWebSearchConfigPath();
-			const { existsSync, readFileSync } = await import("node:fs");
-			const { dirname } = await import("node:path");
-			const templatePath = new URL("./config-template.json", import.meta.url).pathname;
+			const { existsSync } = await import("node:fs");
+			const templatePath = new URL("./config-template.toml", import.meta.url).pathname;
 			const configExists = existsSync(configPath);
 			const templateExists = existsSync(templatePath);
-			let msg = `Config file: ${configPath}${configExists ? " (exists)" : " (not found)"}\n`;
-			msg += `Template:    ${templatePath}${templateExists ? " (exists)" : " (not found)"}`;
+			let msg = `Config: ${configPath}${configExists ? " (exists)" : " (not found)"}\n`;
+			msg += `Template: ${templatePath}${templateExists ? " (exists)" : " (not found)"}`;
 			if (templateExists) {
-				msg += `\n\nCopy template to config:\n  cp "${templatePath}" "${configPath}"`;
+				msg += `\n\ncp \"${templatePath}\" \"${configPath}\"`;
 			}
 			ctx.ui.notify(msg, "info");
 		},

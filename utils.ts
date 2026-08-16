@@ -9,7 +9,7 @@ export function getWebSearchConfigDir(): string {
 }
 
 export function getWebSearchConfigPath(): string {
-	return join(getWebSearchConfigDir(), "web-search.json");
+	return join(getWebSearchConfigDir(), "web-search.toml");
 }
 
 export interface CuratorNetworkConfig {
