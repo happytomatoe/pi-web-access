@@ -3414,9 +3414,6 @@ export default function (pi: ExtensionAPI) {
 			const templateExists = existsSync(templatePath);
 			let msg = `Config: ${configPath}${configExists ? " (exists)" : " (not found)"}\n`;
 			msg += `Template: ${templatePath}${templateExists ? " (exists)" : " (not found)"}`;
-			if (templateExists) {
-				msg += `\n\ncp \"${templatePath}\" \"${configPath}\"`;
-			}
 			ctx.ui.notify(msg, "info");
 		},
 	});
