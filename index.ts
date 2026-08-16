@@ -3408,12 +3408,20 @@ export default function (pi: ExtensionAPI) {
 		description: "Show path to web-search.toml config file",
 		handler: async (_args, ctx) => {
 			const configPath = getWebSearchConfigPath();
-			const { existsSync } = await import("node:fs");
+			const { existsSync, writeFileSync, mkdirSync } = await import("node:fs");
+			const { dirname } = await import("node:path");
 			const templatePath = new URL("./config-template.toml", import.meta.url).pathname;
-			const configExists = existsSync(configPath);
-			const templateExists = existsSync(templatePath);
-			let msg = `Config: ${configPath}${configExists ? " (exists)" : " (not found)"}\n`;
-			msg += `Template: ${templatePath}${templateExists ? " (exists)" : " (not found)"}`;
+			
+			let created = false;
+			if (!existsSync(configPath)) {
+				const dir = dirname(configPath);
+				if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+				writeFileSync(configPath, `provider = "auto"\nworkflow = "none"\n`);
+				created = true;
+			}
+			
+			let msg = created ? `Created: ${configPath}\n` : `Config: ${configPath}\n`;
+			msg += `Template: ${templatePath}`;
 			ctx.ui.notify(msg, "info");
 		},
 	});
