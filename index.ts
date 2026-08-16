@@ -3421,7 +3421,6 @@ export default function (pi: ExtensionAPI) {
 			} else {
 				ctx.ui.notify(`Edit config at ${configPath}`, "info");
 			}
-			}
 		},
 	});
 }

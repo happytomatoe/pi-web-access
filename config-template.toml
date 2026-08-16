@@ -84,3 +84,107 @@ workflow = "none"
 
 # Max characters for inline page content
 # maxInlineContentChars = 50000
+
+# === Advanced Settings ===
+# Most users don't need these.
+
+# Provider & Routing
+# provider = "openai"
+# openaiResponsesUrl = "https://api.openai.com/v1/responses"
+# searchRouting.providers = ["openai", "brave", "exa"]
+# searchRouting.fallbackOn = ["transient", "quota", "network", "invalid-response"]
+# fetchRouting.providers = ["http", "firecrawl", "jina"]
+# fetchRouting.allowRemoteHostedProviders = false
+
+# Tools & Commands
+# [tools]
+# webSearch.enabled = true
+# sourceCheck.enabled = true
+# fetchContent.enabled = true
+# getSearchContent.enabled = true
+# [commands]
+# websearch.enabled = true
+# curator.enabled = true
+
+# Search & Summary Models
+# searchModel = "gemini-3.6-flash"
+# summaryModel = "anthropic/claude-haiku-4-5"
+# summaryGenerationDeadlineMs = 30000
+# curatorTimeoutSeconds = 20
+
+# Curator Remote Access
+# [curatorRemote]
+# host = "my-box.tailnet.ts.net"
+# bind = "100.101.102.103"
+
+# Browser & Profile
+# chromeProfile = "Profile 2"
+# allowBrowserCookies = false
+
+# SearXNG (local/private search)
+# searxngBaseUrl = "https://search.example.com"
+# [searxngHeaders]
+# CF-Access-Client-Id = "xxxxxxxx.access"
+# CF-Access-Client-Secret = "xxxxxxxx"
+
+# Firecrawl
+# firecrawlBaseUrl = "https://crawl.example.com"
+# firecrawlApiKey = "fc-..."
+# firecrawlApiVersion = "v2"
+# firecrawlFreshScrape = false
+
+# Bright Data
+# brightdataUnlockerZone = "pi_unlocker"
+
+# SERPdive
+# serpdiveApiKey = "sd_live_..."
+# serpdiveModel = "krill"
+
+# Cloudflare
+# cloudflareApiKey = "..."
+
+# Datalab
+# datalabApiKey = "..."
+
+# GitHub Clone
+# [githubClone]
+# enabled = true
+# maxRepoSizeMB = 350
+# cloneTimeoutSeconds = 30
+# clonePath = "/tmp/pi-github-repos"
+
+# YouTube
+# [youtube]
+# enabled = true
+# preferredModel = "gemini-3.6-flash"
+
+# Video
+# [video]
+# enabled = true
+# preferredModel = "gemini-3.6-flash"
+# maxSizeMB = 50
+
+# PDF
+# [pdf]
+# enabled = true
+# maxSizeMB = 20
+# provider = "auto"
+
+# Image
+# [image]
+# enabled = true
+
+# Fetch Content
+# [fetchContent.domainPolicy]
+# allow = ["example.com"]
+# deny = ["blocked.example.com"]
+
+# Shortcuts
+# [shortcuts]
+# curate = "ctrl+shift+s"
+# activity = "ctrl+shift+w"
+
+# SSRF
+# [ssrf]
+# allowRanges = ["198.18.0.0/15"]
+# trustEnvProxy = false
