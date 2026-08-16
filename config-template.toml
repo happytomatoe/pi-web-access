@@ -1,0 +1,185 @@
+
+# Search provider: "auto", "all", or specific provider name
+# auto = try providers in order, return first success
+# all = run all providers in parallel, merge results
+provider = "auto"
+
+# Search workflow: "none", "summary-review", "auto-summary"
+# none = return raw results
+# summary-review = AI summary with review
+# auto-summary = uses a side model (e.g. haiku) to summarize
+# Falls back to deterministic summary if no model available
+workflow = "none"
+
+# === API Keys (uncomment to enable) ===
+# Most providers have free tiers - try without a key first!
+
+# Exa - neural/semantic search (free tier: 1000 req/month)
+# exaApiKey = "exa-..."
+
+# Parallel - AI-powered search (free tier available)
+# parallelApiKey = "..."
+
+# Brave - web search API
+# braveApiKey = "BSA_..."
+
+# OpenAI - GPT-4o-mini search
+# openaiApiKey = "sk-..."
+
+# Perplexity - AI search
+# perplexityApiKey = "pplx-..."
+
+# Gemini - Google grounded search
+# geminiApiKey = "AIza..."
+
+# Tavily - search API
+# tavilyApiKey = "tvly-..."
+
+# Search1API
+# search1apiApiKey = "..."
+
+# Searchinfinity/Byteplus
+# searchinfinityApiKey = "..."
+
+# Querit
+# queritApiKey = "..."
+
+# TinyFish
+# tinyfishApiKey = "..."
+
+# Jina AI
+# jinaApiKey = "jina_..."
+
+# Bocha
+# bochaApiKey = "sk-..."
+
+# Kagi
+# kagiApiKey = "..."
+
+# Ollama Cloud
+# ollamaApiKey = "..."
+
+# SerpBase (Google SERP)
+# serpbaseApiKey = "..."
+
+# xAI/Grok
+# xaiApiKey = "..."
+
+# AnySearch (works without key)
+# anysearchApiKey = "..."
+
+# Bright Data SERP
+# brightdataApiKey = "..."
+# brightdataSerpZone = "..."  # Required if using brightdataApiKey
+
+# === Other Settings ===
+
+# Auto-open browser for interactive search results
+# autoOpenBrowser = true
+
+# Max characters for inline page content
+# maxInlineContentChars = 50000
+
+# === Advanced Settings ===
+# Most users don't need these.
+
+# Provider & Routing
+# provider = "openai"
+# openaiResponsesUrl = "https://api.openai.com/v1/responses"
+# searchRouting.providers = ["openai", "brave", "exa"]
+# searchRouting.fallbackOn = ["transient", "quota", "network", "invalid-response"]
+# fetchRouting.providers = ["http", "firecrawl", "jina"]
+# fetchRouting.allowRemoteHostedProviders = false
+
+# Tools & Commands
+# [tools]
+# webSearch.enabled = true
+# sourceCheck.enabled = true
+# fetchContent.enabled = true
+# getSearchContent.enabled = true
+# [commands]
+# websearch.enabled = true
+# curator.enabled = true
+
+# Search & Summary Models
+# searchModel = "gemini-3.6-flash"
+# summaryModel = "anthropic/claude-haiku-4-5"
+# summaryGenerationDeadlineMs = 30000
+# curatorTimeoutSeconds = 20
+
+# Curator Remote Access
+# [curatorRemote]
+# host = "my-box.tailnet.ts.net"
+# bind = "100.101.102.103"
+
+# Browser & Profile
+# chromeProfile = "Profile 2"
+# allowBrowserCookies = false
+
+# SearXNG (local/private search)
+# searxngBaseUrl = "https://search.example.com"
+# [searxngHeaders]
+# CF-Access-Client-Id = "xxxxxxxx.access"
+# CF-Access-Client-Secret = "xxxxxxxx"
+
+# Firecrawl
+# firecrawlBaseUrl = "https://crawl.example.com"
+# firecrawlApiKey = "fc-..."
+# firecrawlApiVersion = "v2"
+# firecrawlFreshScrape = false
+
+# Bright Data
+# brightdataUnlockerZone = "pi_unlocker"
+
+# SERPdive
+# serpdiveApiKey = "sd_live_..."
+# serpdiveModel = "krill"
+
+# Cloudflare
+# cloudflareApiKey = "..."
+
+# Datalab
+# datalabApiKey = "..."
+
+# GitHub Clone
+# [githubClone]
+# enabled = true
+# maxRepoSizeMB = 350
+# cloneTimeoutSeconds = 30
+# clonePath = "/tmp/pi-github-repos"
+
+# YouTube
+# [youtube]
+# enabled = true
+# preferredModel = "gemini-3.6-flash"
+
+# Video
+# [video]
+# enabled = true
+# preferredModel = "gemini-3.6-flash"
+# maxSizeMB = 50
+
+# PDF
+# [pdf]
+# enabled = true
+# maxSizeMB = 20
+# provider = "auto"
+
+# Image
+# [image]
+# enabled = true
+
+# Fetch Content
+# [fetchContent.domainPolicy]
+# allow = ["example.com"]
+# deny = ["blocked.example.com"]
+
+# Shortcuts
+# [shortcuts]
+# curate = "ctrl+shift+s"
+# activity = "ctrl+shift+w"
+
+# SSRF
+# [ssrf]
+# allowRanges = ["198.18.0.0/15"]
+# trustEnvProxy = false

@@ -5,6 +5,7 @@ import {
 	redactCredential,
 } from "./credential-source.ts";
 import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
 
 const DEFAULT_API_HOST = "https://www.datalab.to";
 const API_PREFIX = "/api/v1";
@@ -35,24 +36,7 @@ interface DatalabConfig {
 	datalabApiKey?: unknown;
 }
 
-let cachedConfig: DatalabConfig | null = null;
 
-function loadConfig(): DatalabConfig {
-	if (cachedConfig) return cachedConfig;
-	if (!existsSync(CONFIG_PATH)) {
-		cachedConfig = {};
-		return cachedConfig;
-	}
-
-	const rawText = readFileSync(CONFIG_PATH, "utf-8");
-	try {
-		cachedConfig = JSON.parse(rawText) as DatalabConfig;
-		return cachedConfig;
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
-}
 
 function normalizeString(value: unknown): string | null {
 	if (typeof value !== "string") return null;

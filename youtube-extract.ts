@@ -6,7 +6,7 @@ import { isGeminiWebAvailable, queryWithCookies } from "./gemini-web.ts";
 import { isGeminiApiAvailable, queryGeminiApiWithVideo } from "./gemini-api.ts";
 import { isPerplexityAvailable, searchWithPerplexity } from "./perplexity.ts";
 import { extractHeadingTitle, type ExtractedContent, type FrameResult, type VideoFrame } from "./extract.ts";
-import { formatSeconds, readExecError, isTimeoutError, trimErrorText, mapFfmpegError, getWebSearchConfigPath } from "./utils.ts";
+import { formatSeconds, readExecError, isTimeoutError, trimErrorText, mapFfmpegError, getWebSearchConfigPath, loadConfig } from "./utils.ts";
 
 const CONFIG_PATH = getWebSearchConfigPath();
 
@@ -50,30 +50,14 @@ function normalizeEnabled(value: unknown, fallback: boolean): boolean {
 }
 
 const defaults: YouTubeConfig = { enabled: true, preferredModel: "gemini-3.6-flash" };
-let cachedConfig: YouTubeConfig | null = null;
-
 function loadYouTubeConfig(): YouTubeConfig {
-	if (cachedConfig) return cachedConfig;
-	if (!existsSync(CONFIG_PATH)) {
-		cachedConfig = { ...defaults };
-		return cachedConfig;
-	}
-
-	const rawText = readFileSync(CONFIG_PATH, "utf-8");
-	let raw: { youtube?: { enabled?: boolean; preferredModel?: string } };
-	try {
-		raw = JSON.parse(rawText) as { youtube?: { enabled?: boolean; preferredModel?: string } };
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
-
-	const yt = raw.youtube ?? {};
-	cachedConfig = {
+	const raw = loadConfig();
+	if (!raw) return { ...defaults };
+	const yt = (raw as Record<string, unknown>).youtube as Record<string, unknown> | undefined ?? {};
+	return {
 		enabled: normalizeEnabled(yt.enabled, defaults.enabled),
 		preferredModel: normalizePreferredModel(yt.preferredModel, defaults.preferredModel),
 	};
-	return cachedConfig;
 }
 
 export function isYouTubeURL(url: string): { isYouTube: boolean; videoId: string | null } {

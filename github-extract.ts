@@ -4,7 +4,7 @@ import { extname, join, resolve as resolvePath, sep as pathSep } from "node:path
 import { activityMonitor } from "./activity.ts";
 import type { ExtractedContent } from "./extract.ts";
 import { checkGhAvailable, checkRepoSize, fetchViaApi, showGhHint } from "./github-api.ts";
-import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig, getWebSearchConfigPath } from "./utils.ts";
 
 const CONFIG_PATH = getWebSearchConfigPath();
 
@@ -52,7 +52,6 @@ interface GitHubCloneConfig {
 
 const cloneCache = new Map<string, CachedClone>();
 
-let cachedConfig: GitHubCloneConfig | null = null;
 
 function normalizeEnabled(value: unknown, fallback: boolean): boolean {
 	return typeof value === "boolean" ? value : fallback;
@@ -84,8 +83,6 @@ function normalizeClonePath(value: unknown, fallback: string): string {
 }
 
 function loadGitHubConfig(): GitHubCloneConfig {
-	if (cachedConfig) return cachedConfig;
-
 	const defaults: GitHubCloneConfig = {
 		enabled: true,
 		maxRepoSizeMB: 350,
@@ -93,28 +90,16 @@ function loadGitHubConfig(): GitHubCloneConfig {
 		clonePath: "/tmp/pi-github-repos",
 	};
 
-	if (!existsSync(CONFIG_PATH)) {
-		cachedConfig = defaults;
-		return cachedConfig;
-	}
+	const raw = loadConfig();
+	if (!raw) return defaults;
 
-	const rawText = readFileSync(CONFIG_PATH, "utf-8");
-	let raw: { githubClone?: { enabled?: unknown; maxRepoSizeMB?: unknown; cloneTimeoutSeconds?: unknown; clonePath?: unknown } };
-	try {
-		raw = JSON.parse(rawText) as { githubClone?: { enabled?: unknown; maxRepoSizeMB?: unknown; cloneTimeoutSeconds?: unknown; clonePath?: unknown } };
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
-
-	const gc = raw.githubClone ?? {};
-	cachedConfig = {
+	const gc = (raw as Record<string, unknown>).githubClone as Record<string, unknown> | undefined ?? {};
+	return {
 		enabled: normalizeEnabled(gc.enabled, defaults.enabled),
 		maxRepoSizeMB: normalizePositiveNumber(gc.maxRepoSizeMB, defaults.maxRepoSizeMB),
 		cloneTimeoutSeconds: normalizePositiveNumber(gc.cloneTimeoutSeconds, defaults.cloneTimeoutSeconds),
 		clonePath: normalizeClonePath(gc.clonePath, defaults.clonePath),
 	};
-	return cachedConfig;
 }
 
 const NON_CODE_SEGMENTS = new Set([
@@ -713,5 +698,4 @@ export function clearCloneCache(): void {
 		}
 	}
 	cloneCache.clear();
-	cachedConfig = null;
 }

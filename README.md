@@ -28,22 +28,21 @@
 pi install npm:pi-web-access
 ```
 
-Works immediately with no API keys — Exa MCP provides zero-config search. If Pi has Codex auth from `/login`, OpenAI search can also work without a separate key. For more providers or direct API access, add keys to `~/.pi/web-search.json`:
+Works immediately with no API keys — Exa MCP provides zero-config search. If Pi has Codex auth from `/login`, OpenAI search can also work without a separate key. For more providers or direct API access, add keys to `~/.pi/web-search.toml`:
 
-```json
-{
-  "openaiApiKey": "sk-...",
-  "braveApiKey": "BSA_...",
-  "exaApiKey": "exa-...",
-  "tinyfishApiKey": "sk-tinyfish-...",
-  "search1apiApiKey": "...",
-  "searchinfinityApiKey": "...",
-  "queritApiKey": "...",
-  "jinaApiKey": "jina_...",
-  "bochaApiKey": "sk-...",
-  "perplexityApiKey": "pplx-...",
-  "geminiApiKey": "AIza..."
-}
+```toml
+# API Keys
+openaiApiKey = "sk-..."
+braveApiKey = "BSA_..."
+exaApiKey = "exa-..."
+tinyfishApiKey = "sk-tinyfish-..."
+search1apiApiKey = "..."
+searchinfinityApiKey = "..."
+queritApiKey = "..."
+jinaApiKey = "jina_..."
+bochaApiKey = "sk-..."
+perplexityApiKey = "pplx-..."
+geminiApiKey = "AIza..."
 ```
 
 In `auto` mode (default), `web_search` tries a configured SearXNG endpoint first for local/private search, then OpenAI when suitable and available, Exa (direct API if keyed, MCP if not), Brave, Parallel, TinyFish, Search1API, Searchinfinity, Querit, Tavily, Firecrawl, Jina, SERPdive, Perplexity, Gemini API, and Gemini Web when browser-cookie access is enabled. With no SearXNG configured, the existing zero-config order is unchanged. Exa handles search; curator summary drafts are generated separately by the configured Pi summary model. Slow summary drafts fall back to a deterministic result summary after a bounded deadline.
@@ -52,12 +51,9 @@ If your OpenAI key belongs to a third-party Responses-compatible gateway, set `o
 
 For sandboxed networks that provide outbound proxy transport through environment variables, set `ssrf.trustEnvProxy` to `true` to skip local DNS preflight for proxied hostnames:
 
-```json
-{
-  "ssrf": {
-    "trustEnvProxy": true
-  }
-}
+```toml
+[ssrf]
+trustEnvProxy = true
 ```
 
 This is an opt-in DNS-preflight adjustment, not proxy transport configuration. `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY` are recognized; `NO_PROXY` hosts still undergo DNS validation, and localhost or literal private IP targets remain blocked.
@@ -315,7 +311,7 @@ Toggle with **Ctrl+Shift+W** to see live request/response activity:
 
 ## Configuration
 
-Config defaults to `~/.pi/web-search.json`, or `web-search.json` under `PI_CODING_AGENT_DIR` / `XDG_CONFIG_HOME/pi` when set. Every field is optional.
+Config defaults to `~/.pi/web-search.toml`, or `web-search.toml` under `PI_CODING_AGENT_DIR` / `XDG_CONFIG_HOME/pi` when set. Every field is optional.
 
 ```json
 {
@@ -779,7 +775,7 @@ When `false`, the extension never tries to open a Glimpse window or a browser an
 
 ### Shortcuts
 
-Both shortcuts are configurable via `~/.pi/web-search.json`:
+Both shortcuts are configurable via `~/.pi/web-search.toml`:
 
 ```json
 {

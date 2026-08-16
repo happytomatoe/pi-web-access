@@ -1,5 +1,6 @@
 import type { AgentToolResult, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Box, Text, truncateToWidth, type KeyId } from "@earendil-works/pi-tui";
+import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 import { Type } from "typebox";
 import { StringEnum, complete, type Api, type ImageContent, type Model, type TextContent } from "@earendil-works/pi-ai/compat";
 import type { ExtractedContent, ExtractOptions } from "./extract.ts";
@@ -11,6 +12,8 @@ import { clearCloneCache } from "./github-extract.ts";
 import { getConfiguredSearchRouting, normalizeSearchProviderSelection, RESOLVED_SEARCH_PROVIDERS, SEARCH_PROVIDERS, search, type AttributedSearchResponse, type SearchProvider, type SearchProviderSelection, type ResolvedSearchProvider } from "./gemini-search.ts";
 import type { SearchResult } from "./perplexity.ts";
 import { formatSeconds, getWebSearchConfigDir, getWebSearchConfigPath, resolveCuratorNetworkConfig } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
+
 import {
 	clearResults,
 	deleteResult,
@@ -187,21 +190,17 @@ interface CuratorBootstrap {
 function parseConfigRoot(raw: string): Record<string, unknown> {
 	let parsed: unknown;
 	try {
-		parsed = JSON.parse(raw);
+		parsed = parseToml(raw);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
 	}
 	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-		throw new Error(`Invalid config in ${WEB_SEARCH_CONFIG_PATH}: expected a JSON object`);
+		throw new Error(`Invalid config in ${WEB_SEARCH_CONFIG_PATH}: expected an object`);
 	}
 	return parsed as Record<string, unknown>;
 }
 
-function loadConfig(): WebSearchConfig {
-	if (!existsSync(WEB_SEARCH_CONFIG_PATH)) return {};
-	return parseConfigRoot(readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8")) as WebSearchConfig;
-}
 
 function saveConfig(updates: Partial<WebSearchConfig>): void {
 	let config: Record<string, unknown> = {};
@@ -212,7 +211,7 @@ function saveConfig(updates: Partial<WebSearchConfig>): void {
 	Object.assign(config, updates);
 	const dir = getWebSearchConfigDir();
 	if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-	writeFileSync(WEB_SEARCH_CONFIG_PATH, JSON.stringify(config, null, 2) + "\n");
+	writeFileSync(WEB_SEARCH_CONFIG_PATH, stringifyToml(config) + "\n");
 }
 
 type ToolNames = {
@@ -293,7 +292,6 @@ function loadConfigForExtensionInit(): WebSearchConfig {
 		return loadConfig();
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		console.error(`[pi-web-access] ${message}`);
 		return {};
 	}
 }
@@ -3398,6 +3396,27 @@ export default function (pi: ExtensionAPI) {
 					}
 				}
 				ctx.ui.notify(info, "info");
+			}
+		},
+	});
+
+	// Show path to web-search.toml config
+	pi.registerCommand("web-access:settings", {
+		description: "Show path to web-search.toml config file",
+		handler: async (_args, ctx) => {
+			const configPath = getWebSearchConfigPath();
+			const { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } = await import("node:fs");
+			const { dirname } = await import("node:path");
+			const { fileURLToPath } = await import("node:url");
+			const templatePath = fileURLToPath(new URL("./config-template.toml", import.meta.url));
+			
+			if (!existsSync(configPath)) {
+				const dir = dirname(configPath);
+				if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+				copyFileSync(templatePath, configPath);
+				ctx.ui.notify(`Created: ${configPath}`, "info");
+			} else {
+				ctx.ui.notify(`Edit config at ${configPath}`, "info");
 			}
 		},
 	});

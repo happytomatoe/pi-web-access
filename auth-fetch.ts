@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig, getWebSearchConfigPath } from "./utils.ts";
 
 const WEB_SEARCH_CONFIG_PATH = getWebSearchConfigPath();
 const AUTH_PROFILE_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;

@@ -3,6 +3,7 @@ import { activityMonitor } from "./activity.ts";
 import type { SearchOptions, SearchResponse } from "./perplexity.ts";
 import { hasCredentialSource, redactCredential, resolveCredential } from "./credential-source.ts";
 import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
 
 const BRIGHTDATA_API_URL = "https://api.brightdata.com/request";
 const CONFIG_PATH = getWebSearchConfigPath();
@@ -48,7 +49,6 @@ interface BrightDataSearchOptions extends SearchOptions {
 	includeContent?: boolean;
 }
 
-let cachedConfig: WebSearchConfig | null = null;
 
 // `web-search.json` is a credential store: its own text is the secret. V8 quotes a
 // window of the source it choked on back inside the `JSON.parse` message — with a
@@ -69,26 +69,6 @@ function configParseDetail(err: unknown): string {
 	return position ? `not valid JSON, ${position[0]}` : "not valid JSON";
 }
 
-function loadConfig(): WebSearchConfig {
-	if (cachedConfig) return cachedConfig;
-	if (!existsSync(CONFIG_PATH)) {
-		cachedConfig = {};
-		return cachedConfig;
-	}
-
-	const raw = readFileSync(CONFIG_PATH, "utf-8");
-	let parsed: unknown;
-	try {
-		parsed = JSON.parse(raw);
-	} catch (err) {
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${configParseDetail(err)}`);
-	}
-	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-		throw new Error(`Invalid config in ${CONFIG_PATH}: expected a JSON object`);
-	}
-	cachedConfig = parsed as WebSearchConfig;
-	return cachedConfig;
-}
 
 async function getApiKey(signal?: AbortSignal): Promise<string | null> {
 	return resolveCredential({

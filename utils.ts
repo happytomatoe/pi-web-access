@@ -9,7 +9,7 @@ export function getWebSearchConfigDir(): string {
 }
 
 export function getWebSearchConfigPath(): string {
-	return join(getWebSearchConfigDir(), "web-search.json");
+	return join(getWebSearchConfigDir(), "web-search.toml");
 }
 
 export interface CuratorNetworkConfig {
@@ -27,18 +27,23 @@ function trimmedString(value: unknown): string | undefined {
 	return trimmed.length > 0 ? trimmed : undefined;
 }
 
+import { parse as parseToml } from "smol-toml";
+
+export function loadConfig(): Record<string, unknown> {
+	const configPath = getWebSearchConfigPath();
+	if (!existsSync(configPath)) return {};
+	try {
+		return parseToml(readFileSync(configPath, "utf-8")) as Record<string, unknown>;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to parse ${configPath}: ${msg}`);
+	}
+}
+
 /** Resolves the curator server bind address and URL host from `curatorRemote`. */
 export function resolveCuratorNetworkConfig(): CuratorNetworkConfig {
-	const configPath = getWebSearchConfigPath();
-	if (!existsSync(configPath)) return LOCAL_CURATOR_NETWORK_DEFAULTS;
-
-	let raw: unknown;
-	try {
-		raw = JSON.parse(readFileSync(configPath, "utf-8"));
-	} catch {
-		return LOCAL_CURATOR_NETWORK_DEFAULTS;
-	}
-	if (!raw || typeof raw !== "object" || Array.isArray(raw)) return LOCAL_CURATOR_NETWORK_DEFAULTS;
+	const raw = loadConfig();
+	if (!raw || Object.keys(raw).length === 0) return LOCAL_CURATOR_NETWORK_DEFAULTS;
 
 	const curatorRemote = (raw as Record<string, unknown>).curatorRemote;
 	if (curatorRemote === true) return { enabled: true, host: hostname(), bind: "0.0.0.0" };

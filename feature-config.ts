@@ -1,19 +1,11 @@
-import { existsSync, readFileSync } from "node:fs";
-import { getWebSearchConfigPath } from "./utils.ts";
-
-const CONFIG_PATH = getWebSearchConfigPath();
+import { loadConfig } from "./utils.ts";
 
 type FeatureConfig = { image?: { enabled?: unknown } };
 
 function loadFeatureConfig(): FeatureConfig {
-	if (!existsSync(CONFIG_PATH)) return {};
-	try {
-		const raw: unknown = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
-		return raw && typeof raw === "object" ? raw as FeatureConfig : {};
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
+	const raw = loadConfig();
+	if (!raw) return {};
+	return raw as FeatureConfig;
 }
 
 export function isImageEnabled(): boolean {

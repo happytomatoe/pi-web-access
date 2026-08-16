@@ -22,7 +22,7 @@ import {
 } from "./datalab-pdf-extract.ts";
 import { isGeminiApiAvailable } from "./gemini-api.ts";
 import { extractPDFViaGemini } from "./gemini-pdf-extract.ts";
-import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig, getWebSearchConfigPath } from "./utils.ts";
 
 export interface PDFExtractResult {
 	title: string;

@@ -2,6 +2,8 @@ import { lookup as dnsLookup } from "node:dns/promises";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import net from "node:net";
 import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
+import { parse as parseToml } from "smol-toml";
 
 const DEFAULT_MAX_REDIRECTS = 5;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
@@ -21,8 +23,9 @@ function loadConfigRoot(): Record<string, unknown> | null {
 	try {
 		const stat = statSync(WEB_SEARCH_CONFIG_PATH);
 		signature = `${stat.mtimeMs}:${stat.size}`;
-	} catch {
-		return null;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to read config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
 	}
 
 	if (cachedConfigRoot?.signature === signature) return cachedConfigRoot.value;
@@ -30,20 +33,17 @@ function loadConfigRoot(): Record<string, unknown> | null {
 	let raw: string;
 	try {
 		raw = readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8");
-	} catch {
-		// Do not memoize read failures: a chmod fix changes neither mtime nor size,
-		// so a cached failure would permanently fail-open the domain policy.
-		return null;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to read config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
 	}
-
 	let parsed: unknown;
 	try {
-		parsed = JSON.parse(raw);
+		parsed = parseToml(raw);
 	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to parse config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
 	}
-
 	const value = parsed && typeof parsed === "object" && !Array.isArray(parsed)
 		? parsed as Record<string, unknown>
 		: null;
@@ -64,7 +64,12 @@ export interface DomainPolicy {
 const DEFAULT_DOMAIN_POLICY: DomainPolicy = { allow: [], deny: [] };
 
 export function loadFetchContentDomainPolicy(): DomainPolicy {
-	const parsed = loadConfigRoot();
+	let parsed: Record<string, unknown> | null;
+	try {
+		parsed = loadConfigRoot();
+	} catch {
+		return { ...DEFAULT_DOMAIN_POLICY };
+	}
 	if (!parsed) return { ...DEFAULT_DOMAIN_POLICY };
 	const fetchContent = parsed.fetchContent;
 	if (fetchContent === undefined || fetchContent === null) return { ...DEFAULT_DOMAIN_POLICY };
@@ -109,7 +114,12 @@ function normalizeDomainEntry(entry: string): string | null {
 }
 
 export function loadSsrfConfig(): SsrfConfig {
-	const parsed = loadConfigRoot();
+	let parsed: Record<string, unknown> | null;
+	try {
+		parsed = loadConfigRoot();
+	} catch {
+		return { allowRanges: [], trustEnvProxy: false };
+	}
 	if (!parsed) return { allowRanges: [], trustEnvProxy: false };
 	const ssrf = parsed.ssrf;
 	if (ssrf === undefined || ssrf === null) return { allowRanges: [], trustEnvProxy: false };
