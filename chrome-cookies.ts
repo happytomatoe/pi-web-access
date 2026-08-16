@@ -46,7 +46,7 @@ const MACOS_BROWSER_CONFIGS: BrowserConfig[] = [
 const LINUX_BROWSER_CONFIGS: BrowserConfig[] = [
 	{ name: "Chromium", baseDir: ".config/chromium", secretToolApp: "chromium" },
 	{ name: "Chrome", baseDir: ".config/google-chrome", secretToolApp: "chrome" },
-	{ name: "Brave", baseDir: ".config/BraveSoftware/Brave-Browser", secretToolApp: "brave-browser" },
+	{ name: "Brave", baseDir: ".config/BraveSoftware/Brave-Browser", secretToolApp: "brave" },
 ];
 
 const browserPasswordCache = new Map<string, Promise<string | null>>();
