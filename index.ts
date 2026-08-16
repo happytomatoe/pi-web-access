@@ -3407,22 +3407,17 @@ export default function (pi: ExtensionAPI) {
 		description: "Show path to web-search.json config file",
 		handler: async (_args, ctx) => {
 			const configPath = getWebSearchConfigPath();
-			const { existsSync, writeFileSync, readFileSync } = await import("node:fs");
-			if (!existsSync(configPath)) {
-				writeFileSync(configPath, JSON.stringify({ provider: "auto", workflow: "none" }, null, 2) + "\n");
-				const template = `Created: ${configPath}
-
-Available providers (add API key to enable):
-  openaiApiKey, braveApiKey, exaApiKey, parallelApiKey,
-  tinyfishApiKey, search1apiApiKey, searchinfinityApiKey,
-  queritApiKey, tavilyApiKey, jinaApiKey, bochaApiKey,
-  perplexityApiKey, geminiApiKey, kagiApiKey, ollamaApiKey,
-  serpbaseApiKey, xaiApiKey, anysearchApiKey, brightdataApiKey`;
-				ctx.ui.notify(template, "info");
-			} else {
-				const content = readFileSync(configPath, "utf-8");
-				ctx.ui.notify(`Config file: ${configPath}\n\n${content}`, "info");
+			const { existsSync, readFileSync } = await import("node:fs");
+			const { dirname } = await import("node:path");
+			const templatePath = new URL("./config-template.json", import.meta.url).pathname;
+			const configExists = existsSync(configPath);
+			const templateExists = existsSync(templatePath);
+			let msg = `Config file: ${configPath}${configExists ? " (exists)" : " (not found)"}\n`;
+			msg += `Template:    ${templatePath}${templateExists ? " (exists)" : " (not found)"}`;
+			if (templateExists) {
+				msg += `\n\nCopy template to config:\n  cp "${templatePath}" "${configPath}"`;
 			}
+			ctx.ui.notify(msg, "info");
 		},
 	});
 }
