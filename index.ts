@@ -3409,36 +3409,19 @@ export default function (pi: ExtensionAPI) {
 			const configPath = getWebSearchConfigPath();
 			const { existsSync, writeFileSync, readFileSync } = await import("node:fs");
 			if (!existsSync(configPath)) {
-				const defaultConfig = {
-					provider: "auto",
-					workflow: "none",
-					// API Keys (set one to enable a provider)
-					// openaiApiKey: "sk-...",
-					// braveApiKey: "BSA_...",
-					// exaApiKey: "exa-...",
-					// parallelApiKey: "...",
-					// tinyfishApiKey: "sk-tinyfish-...",
-					// search1apiApiKey: "...",
-					// searchinfinityApiKey: "...",
-					// queritApiKey: "...",
-					// tavilyApiKey: "tvly-...",
-					// jinaApiKey: "jina_...",
-					// bochaApiKey: "sk-...",
-					// perplexityApiKey: "pplx-...",
-					// geminiApiKey: "AIza...",
-					// kagiApiKey: "...",
-					// ollamaApiKey: "...",
-					// serpbaseApiKey: "...",
-					// xaiApiKey: "...",
-					// anysearchApiKey: "...",
-					// brightdataApiKey: "...",
-					// brightdataSerpZone: "...",
-				};
-				writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2) + "\n");
-				ctx.ui.notify(`Created config file: ${configPath}`, "info");
+				writeFileSync(configPath, JSON.stringify({ provider: "auto", workflow: "none" }, null, 2) + "\n");
+				const template = `Created: ${configPath}
+
+Available providers (add API key to enable):
+  openaiApiKey, braveApiKey, exaApiKey, parallelApiKey,
+  tinyfishApiKey, search1apiApiKey, searchinfinityApiKey,
+  queritApiKey, tavilyApiKey, jinaApiKey, bochaApiKey,
+  perplexityApiKey, geminiApiKey, kagiApiKey, ollamaApiKey,
+  serpbaseApiKey, xaiApiKey, anysearchApiKey, brightdataApiKey`;
+				ctx.ui.notify(template, "info");
 			} else {
 				const content = readFileSync(configPath, "utf-8");
-				ctx.ui.notify(`Config file: ${configPath}\n\nCurrent settings:\n${content}`, "info");
+				ctx.ui.notify(`Config file: ${configPath}\n\n${content}`, "info");
 			}
 		},
 	});
