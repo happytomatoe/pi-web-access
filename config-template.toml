@@ -1,85 +1,31 @@
-# Web Search Configuration Template
-# Copy to: ~/.pi/web-search.toml
-#
-# Works out of the box with Exa MCP (no API key needed).
-# Add API keys below to enable more providers.
+# Web Search config - copy to ~/.pi/web-search.toml
+# Works out of the box with Exa (no key needed)
 
-# Search provider: "auto", "all", or specific provider name
-# auto = try providers in order, return first success
-# all = run all providers in parallel, merge results
-provider = "auto"
+provider = "auto"      # "auto", "all", or specific provider
+workflow = "none"      # "none", "summary-review", "auto-summary"
 
-# Search workflow: "none", "summary-review", "auto-summary"
-# none = return raw results
-# summary-review = AI summary with review
-# auto-summary = auto-generate summary
-workflow = "none"
-
-# === API Keys (uncomment to enable) ===
-# Most providers have free tiers - try without a key first!
-
-# Exa - neural/semantic search (free tier: 1000 req/month)
+# API Keys (uncomment to enable)
 # exaApiKey = "exa-..."
-
-# Parallel - AI-powered search (free tier available)
 # parallelApiKey = "..."
-
-# Brave - web search API
 # braveApiKey = "BSA_..."
-
-# OpenAI - GPT-4o-mini search
 # openaiApiKey = "sk-..."
-
-# Perplexity - AI search
 # perplexityApiKey = "pplx-..."
-
-# Gemini - Google grounded search
 # geminiApiKey = "AIza..."
-
-# Tavily - search API
 # tavilyApiKey = "tvly-..."
-
-# Search1API
 # search1apiApiKey = "..."
-
-# Searchinfinity/Byteplus
 # searchinfinityApiKey = "..."
-
-# Querit
 # queritApiKey = "..."
-
-# TinyFish
 # tinyfishApiKey = "..."
-
-# Jina AI
 # jinaApiKey = "jina_..."
-
-# Bocha
 # bochaApiKey = "sk-..."
-
-# Kagi
 # kagiApiKey = "..."
-
-# Ollama Cloud
 # ollamaApiKey = "..."
-
-# SerpBase (Google SERP)
 # serpbaseApiKey = "..."
-
-# xAI/Grok
 # xaiApiKey = "..."
-
-# AnySearch (works without key)
 # anysearchApiKey = "..."
-
-# Bright Data SERP
 # brightdataApiKey = "..."
-# brightdataSerpZone = "..."  # Required if using brightdataApiKey
+# brightdataSerpZone = "..."
 
-# === Other Settings ===
-
-# Auto-open browser for interactive search results
+# Other
 # autoOpenBrowser = true
-
-# Max characters for inline page content
 # maxInlineContentChars = 50000
