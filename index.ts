@@ -188,9 +188,11 @@ interface CuratorBootstrap {
 function parseConfigRoot(raw: string): Record<string, unknown> {
 	let parsed: unknown;
 	try {
+		console.error(`[pi-web-access] parseToml type: ${typeof parseToml}, fn: ${String(parseToml).slice(0, 100)}`);
 		parsed = parseToml(raw);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
+		console.error(`[pi-web-access] parseConfigRoot error: ${message}`);
 		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
 	}
 	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
