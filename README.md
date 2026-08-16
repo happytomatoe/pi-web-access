@@ -311,7 +311,7 @@ Toggle with **Ctrl+Shift+W** to see live request/response activity:
 
 Config defaults to `~/.pi/web-search.toml`, or `web-search.toml` under `PI_CODING_AGENT_DIR` / `XDG_CONFIG_HOME/pi` when set. Every field is optional.
 
-See [`config-template.toml`](config-template.toml) for the full reference with every field documented and commented.
+Run **`/settings`** to show the config path (and create the file from the template if it doesn't exist yet). See [`config-template.toml`](config-template.toml) for the full reference with every field documented and commented.
 
 All provider API-key fields (`openaiApiKey`, `braveApiKey`, `parallelApiKey`, `tinyfishApiKey`, `search1apiApiKey`, `searchinfinityApiKey`, `queritApiKey`, `tavilyApiKey`, `jinaApiKey`, `serpdiveApiKey`, `kagiApiKey`, `bochaApiKey`, `ollamaApiKey`, `serpbaseApiKey`, `anysearchApiKey`, `xaiApiKey`, `brightdataApiKey`, `firecrawlApiKey`, `exaApiKey`, `perplexityApiKey`, `geminiApiKey`, `datalabApiKey`, and `cloudflareApiKey`) accept explicit credential sources. Use `$NAME` or `${NAME}` to read one named environment variable, or prefix a trusted local shell command with `!` to resolve one value at provider request time. Escape `$$` as a literal leading `$` and `$!` as a literal leading `!`:
 
