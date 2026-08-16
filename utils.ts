@@ -36,9 +36,9 @@ function trimmedString(value: unknown): string | undefined {
 
 import { parse as parseToml } from "smol-toml";
 
-export function loadConfig(): Record<string, unknown> | null {
+export function loadConfig(): Record<string, unknown> {
 	const configPath = getWebSearchConfigPath();
-	if (!existsSync(configPath)) return null;
+	if (!existsSync(configPath)) return {};
 	try {
 		return parseToml(readFileSync(configPath, "utf-8")) as Record<string, unknown>;
 	} catch (err) {
