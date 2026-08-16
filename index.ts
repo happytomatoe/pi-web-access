@@ -3407,8 +3407,7 @@ export default function (pi: ExtensionAPI) {
 		description: "Show path to web-search.json config file",
 		handler: async (_args, ctx) => {
 			const configPath = getWebSearchConfigPath();
-			const configDir = getWebSearchConfigDir();
-			ctx.ui.notify(`Config file: ${configPath}\nConfig dir: ${configDir}`, "info");
+			ctx.ui.notify(`Config file: ${configPath}`, "info");
 		},
 	});
 }
