@@ -28,7 +28,7 @@
 pi install npm:pi-web-access
 ```
 
-Works immediately with no API keys — Exa MCP provides zero-config search. If Pi has Codex auth from `/login`, OpenAI search can also work without a separate key. For more providers or direct API access, add keys to `~/.pi/web-search.json`:
+Works immediately with no API keys — Exa MCP provides zero-config search. If Pi has Codex auth from `/login`, OpenAI search can also work without a separate key. For more providers or direct API access, add keys to `~/.pi/web-search.toml`:
 
 ```json
 {
@@ -315,7 +315,7 @@ Toggle with **Ctrl+Shift+W** to see live request/response activity:
 
 ## Configuration
 
-Config defaults to `~/.pi/web-search.json`, or `web-search.json` under `PI_CODING_AGENT_DIR` / `XDG_CONFIG_HOME/pi` when set. Every field is optional.
+Config defaults to `~/.pi/web-search.toml`, or `web-search.toml` under `PI_CODING_AGENT_DIR` / `XDG_CONFIG_HOME/pi` when set. Every field is optional.
 
 ```json
 {
@@ -779,7 +779,7 @@ When `false`, the extension never tries to open a Glimpse window or a browser an
 
 ### Shortcuts
 
-Both shortcuts are configurable via `~/.pi/web-search.json`:
+Both shortcuts are configurable via `~/.pi/web-search.toml`:
 
 ```json
 {
