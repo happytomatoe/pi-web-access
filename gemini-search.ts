@@ -386,7 +386,7 @@ async function searchWithProviders(
 	const providers = selectedProviders ?? (await Promise.all(ALL_SEARCH_PROVIDERS.map(async (provider) => ({
 		provider,
 		available: provider === "gemini"
-			? isGeminiApiAvailable()
+			? isGeminiApiAvailable() || !!(await isGeminiWebAvailable())
 			: await isResolvedProviderAvailable(provider, options),
 	})))).filter((entry) => entry.available).map((entry) => entry.provider);
 	if (providers.length === 0) {
