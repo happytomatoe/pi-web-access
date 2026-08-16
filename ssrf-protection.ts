@@ -23,8 +23,9 @@ function loadConfigRoot(): Record<string, unknown> | null {
 	try {
 		const stat = statSync(WEB_SEARCH_CONFIG_PATH);
 		signature = `${stat.mtimeMs}:${stat.size}`;
-	} catch {
-		return null;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to read config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
 	}
 
 	if (cachedConfigRoot?.signature === signature) return cachedConfigRoot.value;
@@ -32,14 +33,16 @@ function loadConfigRoot(): Record<string, unknown> | null {
 	let raw: string;
 	try {
 		raw = readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8");
-	} catch {
-		return null;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to read config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
 	}
 	let parsed: unknown;
 	try {
 		parsed = parseToml(raw);
-	} catch {
-		return null;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to parse config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
 	}
 	const value = parsed && typeof parsed === "object" && !Array.isArray(parsed)
 		? parsed as Record<string, unknown>
@@ -61,7 +64,12 @@ export interface DomainPolicy {
 const DEFAULT_DOMAIN_POLICY: DomainPolicy = { allow: [], deny: [] };
 
 export function loadFetchContentDomainPolicy(): DomainPolicy {
-	const parsed = loadConfigRoot();
+	let parsed: Record<string, unknown> | null;
+	try {
+		parsed = loadConfigRoot();
+	} catch {
+		return { ...DEFAULT_DOMAIN_POLICY };
+	}
 	if (!parsed) return { ...DEFAULT_DOMAIN_POLICY };
 	const fetchContent = parsed.fetchContent;
 	if (fetchContent === undefined || fetchContent === null) return { ...DEFAULT_DOMAIN_POLICY };
@@ -106,7 +114,12 @@ function normalizeDomainEntry(entry: string): string | null {
 }
 
 export function loadSsrfConfig(): SsrfConfig {
-	const parsed = loadConfigRoot();
+	let parsed: Record<string, unknown> | null;
+	try {
+		parsed = loadConfigRoot();
+	} catch {
+		return { allowRanges: [], trustEnvProxy: false };
+	}
 	if (!parsed) return { allowRanges: [], trustEnvProxy: false };
 	const ssrf = parsed.ssrf;
 	if (ssrf === undefined || ssrf === null) return { allowRanges: [], trustEnvProxy: false };

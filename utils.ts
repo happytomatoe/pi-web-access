@@ -43,8 +43,7 @@ export function loadConfig(): Record<string, unknown> | null {
 		return parseToml(readFileSync(configPath, "utf-8")) as Record<string, unknown>;
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : String(err);
-		debugLog(`Failed to parse ${configPath}: ${msg}`);
-		return null;
+		throw new Error(`Failed to parse ${configPath}: ${msg}`);
 	}
 }
 
