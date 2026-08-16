@@ -2,6 +2,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir, hostname } from "node:os";
 import { join } from "node:path";
 
+const DEBUG = process.env.PI_WEB_ACCESS_DEBUG === "1";
+function debugLog(...args: unknown[]) {
+	if (!DEBUG) return;
+	const line = args.map(a => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
+	require("fs").appendFileSync("/tmp/pi-web-access.log", `${new Date().toISOString()} ${line}\n`);
+}
+
 export function getWebSearchConfigDir(): string {
 	if (process.env.PI_CODING_AGENT_DIR) return process.env.PI_CODING_AGENT_DIR;
 	if (process.env.XDG_CONFIG_HOME) return join(process.env.XDG_CONFIG_HOME, "pi");
@@ -27,18 +34,24 @@ function trimmedString(value: unknown): string | undefined {
 	return trimmed.length > 0 ? trimmed : undefined;
 }
 
+import { parse as parseToml } from "smol-toml";
+
+export function loadConfig(): Record<string, unknown> | null {
+	const configPath = getWebSearchConfigPath();
+	if (!existsSync(configPath)) return null;
+	try {
+		return parseToml(readFileSync(configPath, "utf-8")) as Record<string, unknown>;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		debugLog(`Failed to parse ${configPath}: ${msg}`);
+		return null;
+	}
+}
+
 /** Resolves the curator server bind address and URL host from `curatorRemote`. */
 export function resolveCuratorNetworkConfig(): CuratorNetworkConfig {
-	const configPath = getWebSearchConfigPath();
-	if (!existsSync(configPath)) return LOCAL_CURATOR_NETWORK_DEFAULTS;
-
-	let raw: unknown;
-	try {
-		raw = JSON.parse(readFileSync(configPath, "utf-8"));
-	} catch {
-		return LOCAL_CURATOR_NETWORK_DEFAULTS;
-	}
-	if (!raw || typeof raw !== "object" || Array.isArray(raw)) return LOCAL_CURATOR_NETWORK_DEFAULTS;
+	const raw = loadConfigRoot();
+	if (!raw) return LOCAL_CURATOR_NETWORK_DEFAULTS;
 
 	const curatorRemote = (raw as Record<string, unknown>).curatorRemote;
 	if (curatorRemote === true) return { enabled: true, host: hostname(), bind: "0.0.0.0" };

@@ -26,7 +26,7 @@ import { isAnySearchAvailable, searchWithAnySearch } from "./anysearch.ts";
 import { isXaiSearchAvailable, searchWithXai } from "./xai-search.ts";
 import { isBrightDataAvailable, searchWithBrightData } from "./brightdata.ts";
 import { isSerpBaseAvailable, searchWithSerpBase } from "./serpbase.ts";
-import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig, getWebSearchConfigPath } from "./utils.ts";
 
 export const RESOLVED_SEARCH_PROVIDERS = ["openai", "brave", "parallel", "tinyfish", "search1api", "searchinfinity", "querit", "tavily", "firecrawl", "jina", "searxng", "duckduckgo", "perplexity", "gemini", "exa", "serpdive", "kagi", "ollama", "anysearch", "xai", "brightdata", "serpbase", "bocha"] as const;
 export const SEARCH_PROVIDERS = ["auto", "all", ...RESOLVED_SEARCH_PROVIDERS] as const;
@@ -106,22 +106,11 @@ let cachedSearchConfig: SearchConfig | null = null;
 
 function getSearchConfig(): SearchConfig {
 	if (cachedSearchConfig) return cachedSearchConfig;
-	if (!existsSync(CONFIG_PATH)) {
+
+	const raw = loadConfig();
+	if (!raw) {
 		cachedSearchConfig = { searchProvider: "auto", searchProviderConfigured: false };
 		return cachedSearchConfig;
-	}
-
-	const rawText = readFileSync(CONFIG_PATH, "utf-8");
-	let raw: Record<string, unknown>;
-	try {
-		const parsed: unknown = JSON.parse(rawText);
-		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-			throw new Error("expected a JSON object");
-		}
-		raw = parsed as Record<string, unknown>;
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
 	}
 
 	const searchModel = normalizeSearchModel(raw.searchModel);

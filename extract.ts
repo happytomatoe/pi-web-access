@@ -22,7 +22,7 @@ import { extractWithBrightDataUnlocker, isBrightDataUnlockerAvailable } from "./
 import { isVideoFile, extractVideo, extractVideoFrame, getLocalVideoDuration } from "./video-extract.ts";
 import { appendDeclaredWebLinks, discoverDeclaredWebLinks, type DeclaredWebLink } from "./declared-web-links.ts";
 import { fetchRemoteUrl, loadFetchContentDomainPolicy, loadSsrfConfig, validateRemoteUrl, type DomainPolicy, type Lookup, type SsrfConfig } from "./ssrf-protection.ts";
-import { formatSeconds, getWebSearchConfigPath } from "./utils.ts";
+import { formatSeconds, getWebSearchConfigPath, loadConfigRoot } from "./utils.ts";
 import { isImageEnabled } from "./feature-config.ts";
 import { assertAuthFetchUrl, authFetchRedirectGuard, type AuthFetchProfile } from "./auth-fetch.ts";
 import { getBrowserCookiesForHosts, getLastBrowserCookieDiagnostic } from "./chrome-cookies.ts";
@@ -128,21 +128,8 @@ async function fetchAuthenticatedRemoteUrl(
 }
 
 function loadFetchRouting(): FetchRouting {
-	if (!existsSync(WEB_SEARCH_CONFIG_PATH)) {
-		return { providers: DEFAULT_FETCH_PROVIDER_ORDER, allowRemoteHostedProviders: false };
-	}
-
-	let raw: Record<string, unknown>;
-	try {
-		const parsed: unknown = JSON.parse(readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8"));
-		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-			throw new Error("expected a JSON object");
-		}
-		raw = parsed as Record<string, unknown>;
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
-	}
+	const raw = loadConfigRoot();
+	if (!raw) return { providers: DEFAULT_FETCH_PROVIDER_ORDER, allowRemoteHostedProviders: false };
 
 	if (!Object.hasOwn(raw, "fetchRouting")) {
 		return { providers: DEFAULT_FETCH_PROVIDER_ORDER, allowRemoteHostedProviders: false };

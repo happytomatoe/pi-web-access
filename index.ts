@@ -12,6 +12,15 @@ import { clearCloneCache } from "./github-extract.ts";
 import { getConfiguredSearchRouting, normalizeSearchProviderSelection, RESOLVED_SEARCH_PROVIDERS, SEARCH_PROVIDERS, search, type AttributedSearchResponse, type SearchProvider, type SearchProviderSelection, type ResolvedSearchProvider } from "./gemini-search.ts";
 import type { SearchResult } from "./perplexity.ts";
 import { formatSeconds, getWebSearchConfigDir, getWebSearchConfigPath, resolveCuratorNetworkConfig } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
+
+const DEBUG = process.env.PI_WEB_ACCESS_DEBUG === "1";
+function debugLog(...args: unknown[]) {
+	if (!DEBUG) return;
+	const fs = require("fs") as typeof import("fs");
+	const line = args.map(a => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
+	fs.appendFileSync("/tmp/pi-web-access.log", `${new Date().toISOString()} ${line}\n`);
+}
 import {
 	clearResults,
 	deleteResult,
@@ -188,11 +197,11 @@ interface CuratorBootstrap {
 function parseConfigRoot(raw: string): Record<string, unknown> {
 	let parsed: unknown;
 	try {
-		console.error(`[pi-web-access] parseToml type: ${typeof parseToml}, fn: ${String(parseToml).slice(0, 100)}`);
 		parsed = parseToml(raw);
+		debugLog("parseToml type:", typeof parseToml);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		console.error(`[pi-web-access] parseConfigRoot error: ${message}`);
+		debugLog("parseConfigRoot error:", message);
 		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
 	}
 	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -201,10 +210,6 @@ function parseConfigRoot(raw: string): Record<string, unknown> {
 	return parsed as Record<string, unknown>;
 }
 
-function loadConfig(): WebSearchConfig {
-	if (!existsSync(WEB_SEARCH_CONFIG_PATH)) return {};
-	return parseConfigRoot(readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8")) as WebSearchConfig;
-}
 
 function saveConfig(updates: Partial<WebSearchConfig>): void {
 	let config: Record<string, unknown> = {};
@@ -296,7 +301,7 @@ function loadConfigForExtensionInit(): WebSearchConfig {
 		return loadConfig();
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		console.error(`[pi-web-access] ${message}`);
+		debugLog("loadConfigForExtensionInit error:", message);
 		return {};
 	}
 }

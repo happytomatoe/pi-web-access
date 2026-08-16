@@ -5,6 +5,7 @@ import type { ExtractedContent, ExtractOptions } from "./extract.ts";
 import type { SearchOptions, SearchResponse } from "./perplexity.ts";
 import { loadSsrfConfig, validateRemoteUrl, type Lookup } from "./ssrf-protection.ts";
 import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
 
 const CONFIG_PATH = getWebSearchConfigPath();
 const DEFAULT_API_VERSION = "v2";
@@ -61,28 +62,7 @@ interface DomainFilters {
 	exclude: string[];
 }
 
-let cachedConfig: FirecrawlConfig | null = null;
 
-function loadConfig(): FirecrawlConfig {
-	if (cachedConfig) return cachedConfig;
-	if (!existsSync(CONFIG_PATH)) {
-		cachedConfig = {};
-		return cachedConfig;
-	}
-	const raw = readFileSync(CONFIG_PATH, "utf8");
-	let parsed: unknown;
-	try {
-		parsed = JSON.parse(raw);
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
-	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-		throw new Error(`Invalid config in ${CONFIG_PATH}: expected a JSON object`);
-	}
-	cachedConfig = parsed as FirecrawlConfig;
-	return cachedConfig;
-}
 
 export function clearFirecrawlConfigCache(): void {
 	cachedConfig = null;

@@ -4,6 +4,7 @@ import { activityMonitor } from "./activity.ts";
 import type { SearchOptions, SearchResponse, SearchResult } from "./perplexity.ts";
 import { hasCredentialSource, redactCredential, resolveCredential } from "./credential-source.ts";
 import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
 
 // xAI's Agent Tools API: a hosted `web_search` tool on an OpenAI-compatible
 // Responses endpoint. The search runs inside xAI's own inference, so — unlike
@@ -44,24 +45,7 @@ interface XaiAuth {
 	headers: ProviderHeaders;
 }
 
-let cachedConfig: WebSearchConfig | null = null;
 
-function loadConfig(): WebSearchConfig {
-	if (cachedConfig) return cachedConfig;
-	if (!existsSync(CONFIG_PATH)) {
-		cachedConfig = {};
-		return cachedConfig;
-	}
-
-	const raw = readFileSync(CONFIG_PATH, "utf-8");
-	try {
-		cachedConfig = JSON.parse(raw) as WebSearchConfig;
-		return cachedConfig;
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
-}
 
 function resolveConfiguredSearchModel(value: unknown): string | undefined {
 	if (value == null) return undefined;

@@ -2,6 +2,8 @@ import { lookup as dnsLookup } from "node:dns/promises";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import net from "node:net";
 import { getWebSearchConfigPath } from "./utils.ts";
+import { loadConfig } from "./utils.ts";
+import { parse as parseToml } from "smol-toml";
 
 const DEFAULT_MAX_REDIRECTS = 5;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
@@ -31,19 +33,14 @@ function loadConfigRoot(): Record<string, unknown> | null {
 	try {
 		raw = readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8");
 	} catch {
-		// Do not memoize read failures: a chmod fix changes neither mtime nor size,
-		// so a cached failure would permanently fail-open the domain policy.
 		return null;
 	}
-
 	let parsed: unknown;
 	try {
-		parsed = JSON.parse(raw);
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
+		parsed = parseToml(raw);
+	} catch {
+		return null;
 	}
-
 	const value = parsed && typeof parsed === "object" && !Array.isArray(parsed)
 		? parsed as Record<string, unknown>
 		: null;
