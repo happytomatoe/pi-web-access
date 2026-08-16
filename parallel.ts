@@ -7,6 +7,7 @@ import { getWebSearchConfigPath } from "./utils.ts";
 
 const PARALLEL_SEARCH_URL = "https://api.parallel.ai/v1/search";
 const PARALLEL_EXTRACT_URL = "https://api.parallel.ai/v1/extract";
+const PARALLEL_MCP_URL = "https://search.parallel.ai/mcp";
 const CONFIG_PATH = getWebSearchConfigPath();
 const MIN_PARALLEL_API_KEY_LENGTH = 8;
 const MIN_USEFUL_CONTENT = 500;
@@ -133,7 +134,7 @@ export function hasParallelApiKey(): boolean {
 }
 
 export function isParallelAvailable(): boolean {
-	return hasParallelApiKey();
+	return true;
 }
 
 function requestSignal(signal?: AbortSignal): AbortSignal {
@@ -313,18 +314,193 @@ async function fetchAndMapExtractResult(
 	return { mapped: mapExtractResult(result), result };
 }
 
-export async function searchWithParallel(query: string, options: ParallelSearchOptions = {}): Promise<SearchResponse> {
-	const data = await parallelFetch(PARALLEL_SEARCH_URL, buildSearchRequestBody(query, options), options.signal);
-	const results = data.results as V1WebSearchResult[] | undefined;
-	const response: SearchResponse = {
-		answer: buildAnswerFromExcerpts(results),
-		results: mapSearchResults(results),
+interface ParallelMcpRpcResponse {
+	result?: {
+		content?: Array<{ type?: string; text?: string }>;
+		isError?: boolean;
 	};
-	if (options.includeContent) {
-		const inlineContent = mapInlineContent(results);
-		if (inlineContent.length > 0) response.inlineContent = inlineContent;
+	error?: {
+		code?: number;
+		message?: string;
+	};
+}
+
+async function callParallelMcp(
+	args: Record<string, unknown>,
+	signal?: AbortSignal,
+): Promise<string> {
+	const body = {
+		jsonrpc: "2.0",
+		id: 1,
+		method: "tools/call",
+		params: {
+			name: "web_search",
+			arguments: args,
+		},
+	};
+
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+		"Accept": "application/json",
+	};
+
+	const apiKey = await resolveApiKey(signal);
+	if (apiKey) {
+		headers["Authorization"] = `Bearer ${apiKey}`;
 	}
-	return response;
+
+	const response = await fetch(PARALLEL_MCP_URL, {
+		method: "POST",
+		headers,
+		body: JSON.stringify(body),
+		signal: requestSignal(signal),
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		if (response.status === 429) {
+			throw new Error(`Parallel MCP rate limit (429): ${errorText.slice(0, 200)}`);
+		}
+		throw new Error(`Parallel MCP error ${response.status}: ${errorText.slice(0, 300)}`);
+	}
+
+	const data = await response.json() as ParallelMcpRpcResponse;
+
+	if (data.error) {
+		const code = typeof data.error.code === "number" ? ` ${data.error.code}` : "";
+		throw new Error(`Parallel MCP error${code}: ${data.error.message || "Unknown error"}`);
+	}
+
+	if (data.result?.isError) {
+		const message = data.result.content
+			?.find(item => item.type === "text" && typeof item.text === "string")
+			?.text?.trim();
+		throw new Error(message || "Parallel MCP returned an error");
+	}
+
+	// Prefer structuredContent (JSON) over text
+	const structured = (data.result as Record<string, unknown>)?.structuredContent;
+	if (structured && typeof structured === "object") {
+		return JSON.stringify(structured);
+	}
+
+	const text = data.result?.content
+		?.find(item => item.type === "text" && typeof item.text === "string" && item.text.trim().length > 0)
+		?.text;
+
+	if (!text) {
+		throw new Error("Parallel MCP returned empty content");
+	}
+
+	return text;
+}
+
+interface ParallelMcpStructuredContent {
+	search_id?: string;
+	results?: Array<{
+		url: string;
+		title?: string;
+		excerpts?: string[];
+	}>;
+}
+
+function parseMcpResults(text: string): V1WebSearchResult[] {
+	// Try to parse as JSON (structured content from MCP)
+	try {
+		const parsed = JSON.parse(text) as ParallelMcpStructuredContent;
+		if (Array.isArray(parsed.results)) {
+			return parsed.results.filter(r => r.url).map(r => ({
+				url: r.url,
+				title: r.title ?? null,
+				excerpts: r.excerpts,
+			}));
+		}
+	} catch {
+		// Not JSON, try text block parsing
+	}
+
+	// Fallback: parse Title:/URL:/Text: blocks
+	const blocks = text.split(/(?=^Title: )/m).filter(block => block.trim().length > 0);
+	return blocks.map(block => {
+		const title = block.match(/^Title: (.+)/m)?.[1]?.trim() ?? "";
+		const url = block.match(/^URL: (.+)/m)?.[1]?.trim() ?? "";
+		let excerpts: string[] = [];
+		const textStart = block.indexOf("\nText: ");
+		if (textStart >= 0) {
+			const content = block.slice(textStart + 7).trim();
+			if (content) excerpts = [content];
+		} else {
+			const hlMatch = block.match(/\nHighlights:\s*\n/);
+			if (hlMatch?.index != null) {
+				const content = block.slice(hlMatch.index + hlMatch[0].length).trim();
+				if (content) excerpts = [content];
+			}
+		}
+		return { url, title, excerpts };
+	}).filter(r => r.url.length > 0);
+}
+
+async function searchWithParallelMcp(
+	query: string,
+	options: ParallelSearchOptions = {},
+): Promise<SearchResponse> {
+	const activityId = activityMonitor.logStart({ type: "api", query });
+
+	try {
+		const text = await callParallelMcp(
+			{ objective: query, search_queries: [query] },
+			options.signal,
+		);
+
+		const results = parseMcpResults(text);
+		activityMonitor.logComplete(activityId, 200);
+
+		const response: SearchResponse = {
+			answer: buildAnswerFromExcerpts(results),
+			results: mapSearchResults(results),
+		};
+		if (options.includeContent) {
+			const inlineContent = mapInlineContent(results);
+			if (inlineContent.length > 0) response.inlineContent = inlineContent;
+		}
+		return response;
+	} catch (err) {
+		const message = errorMessage(err);
+		if (message.toLowerCase().includes("abort")) {
+			activityMonitor.logComplete(activityId, 0);
+		} else {
+			activityMonitor.logError(activityId, message);
+		}
+		throw err;
+	}
+}
+
+export async function searchWithParallel(query: string, options: ParallelSearchOptions = {}): Promise<SearchResponse> {
+	const apiKey = await resolveApiKey(options.signal);
+
+	// If API key available, use direct REST API
+	if (apiKey) {
+		try {
+			const data = await parallelFetch(PARALLEL_SEARCH_URL, buildSearchRequestBody(query, options), options.signal);
+			const results = data.results as V1WebSearchResult[] | undefined;
+			const response: SearchResponse = {
+				answer: buildAnswerFromExcerpts(results),
+				results: mapSearchResults(results),
+			};
+			if (options.includeContent) {
+				const inlineContent = mapInlineContent(results);
+				if (inlineContent.length > 0) response.inlineContent = inlineContent;
+			}
+			return response;
+		} catch (err) {
+			// API key failed, fall through to MCP
+			const message = errorMessage(err);
+			if (message.toLowerCase().includes("abort")) throw err;
+		}
+	}
+
+	// No API key or API failed — use free MCP endpoint
+	return searchWithParallelMcp(query, options);
 }
 
 export async function extractWithParallel(
