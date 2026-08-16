@@ -378,6 +378,12 @@ async function callParallelMcp(
 		throw new Error(message || "Parallel MCP returned an error");
 	}
 
+	// Prefer structuredContent (JSON) over text
+	const structured = (data.result as Record<string, unknown>)?.structuredContent;
+	if (structured && typeof structured === "object") {
+		return JSON.stringify(structured);
+	}
+
 	const text = data.result?.content
 		?.find(item => item.type === "text" && typeof item.text === "string" && item.text.trim().length > 0)
 		?.text;
@@ -389,7 +395,31 @@ async function callParallelMcp(
 	return text;
 }
 
+interface ParallelMcpStructuredContent {
+	search_id?: string;
+	results?: Array<{
+		url: string;
+		title?: string;
+		excerpts?: string[];
+	}>;
+}
+
 function parseMcpResults(text: string): V1WebSearchResult[] {
+	// Try to parse as JSON (structured content from MCP)
+	try {
+		const parsed = JSON.parse(text) as ParallelMcpStructuredContent;
+		if (Array.isArray(parsed.results)) {
+			return parsed.results.filter(r => r.url).map(r => ({
+				url: r.url,
+				title: r.title ?? null,
+				excerpts: r.excerpts,
+			}));
+		}
+	} catch {
+		// Not JSON, try text block parsing
+	}
+
+	// Fallback: parse Title:/URL:/Text: blocks
 	const blocks = text.split(/(?=^Title: )/m).filter(block => block.trim().length > 0);
 	return blocks.map(block => {
 		const title = block.match(/^Title: (.+)/m)?.[1]?.trim() ?? "";
