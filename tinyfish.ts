@@ -60,9 +60,6 @@ interface TinyFishSearchOptions extends SearchOptions {
 
 
 
-export function clearTinyFishConfigCache(): void {
-	cachedConfig = null;
-}
 
 async function getApiKey(signal?: AbortSignal): Promise<string> {
 	const key = await resolveCredential({

@@ -554,7 +554,7 @@ interface PendingCurate {
 const DEFAULT_MAX_INLINE_CONTENT_CHARS = 30_000;
 const MAX_INLINE_CONTENT_CHARS = 200_000;
 
-function getMaxInlineContentChars(config = loadConfig()): number {
+function getMaxInlineContentChars(config: Record<string, unknown> = loadConfig()): number {
 	const value = config.maxInlineContentChars;
 	if (typeof value !== "number" || !Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
 		return DEFAULT_MAX_INLINE_CONTENT_CHARS;
@@ -2643,7 +2643,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	if (getSearchContentEnabled) {
-		const maxInlineContentChars = getMaxInlineContentChars(initConfig);
+		const maxInlineContentChars = getMaxInlineContentChars(initConfig as Record<string, unknown>);
 		pi.registerTool({
 		name: toolNames.getSearchContent,
 		label: "Get Search Content",

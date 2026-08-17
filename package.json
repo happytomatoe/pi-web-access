@@ -43,6 +43,7 @@
     "pi-web-fetch-demo.mp4"
   ],
   "devDependencies": {
+    "@types/node": "^26.2.0",
     "@types/turndown": "^5.0.6",
     "typescript": "^7.0.2"
   },

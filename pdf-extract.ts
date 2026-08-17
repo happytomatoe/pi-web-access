@@ -67,8 +67,8 @@ const PAGE_MARKER_PATTERN = /^<!-- Page (\d+) -->$/gm;
 export function loadPDFConfig(): PDFConfig {
 	const raw = loadConfig();
 	const pdf =
-		root.pdf && typeof root.pdf === "object"
-			? (root.pdf as Record<string, unknown>)
+		raw.pdf && typeof raw.pdf === "object"
+			? (raw.pdf as Record<string, unknown>)
 			: {};
 	const enabled = pdf.enabled !== false;
 	const configured = pdf.maxSizeMB;

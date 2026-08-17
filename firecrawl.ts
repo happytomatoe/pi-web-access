@@ -64,10 +64,6 @@ interface DomainFilters {
 
 
 
-export function clearFirecrawlConfigCache(): void {
-	cachedConfig = null;
-}
-
 function normalizeBaseUrl(value: unknown): string | null {
 	if (typeof value !== "string") return null;
 	const trimmed = value.trim();
