@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from "node:fs";
 import { loadConfig, getWebSearchConfigPath } from "./utils.ts";
 
 const WEB_SEARCH_CONFIG_PATH = getWebSearchConfigPath();
@@ -59,17 +58,9 @@ export function authFetchRedirectGuard(profile: AuthFetchProfile, from: URL, to:
 }
 
 function loadAuthFetchProfiles(): AuthFetchProfile[] {
-	if (!existsSync(WEB_SEARCH_CONFIG_PATH)) return [];
-	const raw = readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8");
-	let parsed: AuthFetchConfigRoot;
-	try {
-		const value: unknown = JSON.parse(raw);
-		if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("expected a JSON object");
-		parsed = value as AuthFetchConfigRoot;
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
-	}
+	const raw = loadConfig();
+	if (Object.keys(raw).length === 0) return [];
+	const parsed = raw as unknown as AuthFetchConfigRoot;
 	if (parsed.authFetch === undefined || parsed.authFetch === null) return [];
 	if (typeof parsed.authFetch !== "object" || Array.isArray(parsed.authFetch)) {
 		throw new Error(`authFetch in ${WEB_SEARCH_CONFIG_PATH} must be an object`);

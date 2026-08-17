@@ -1,9 +1,8 @@
 import { lookup as dnsLookup } from "node:dns/promises";
-import { existsSync, readFileSync, statSync } from "node:fs";
 import net from "node:net";
-import { getWebSearchConfigPath } from "./utils.ts";
-import { loadConfig } from "./utils.ts";
-import { parse as parseToml } from "smol-toml";
+import { loadConfig, getWebSearchConfigPath } from "./utils.ts";
+
+const WEB_SEARCH_CONFIG_PATH = getWebSearchConfigPath();
 
 const DEFAULT_MAX_REDIRECTS = 5;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
@@ -12,44 +11,6 @@ export type LookupAddress = { address: string; family: number };
 export type Lookup = (hostname: string) => Promise<LookupAddress[]>;
 type Fetch = typeof fetch;
 
-const WEB_SEARCH_CONFIG_PATH = getWebSearchConfigPath();
-
-let cachedConfigRoot: { signature: string; value: Record<string, unknown> | null } | null = null;
-
-function loadConfigRoot(): Record<string, unknown> | null {
-	if (!existsSync(WEB_SEARCH_CONFIG_PATH)) return null;
-
-	let signature: string;
-	try {
-		const stat = statSync(WEB_SEARCH_CONFIG_PATH);
-		signature = `${stat.mtimeMs}:${stat.size}`;
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to read config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
-	}
-
-	if (cachedConfigRoot?.signature === signature) return cachedConfigRoot.value;
-
-	let raw: string;
-	try {
-		raw = readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8");
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to read config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
-	}
-	let parsed: unknown;
-	try {
-		parsed = parseToml(raw);
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse config file ${WEB_SEARCH_CONFIG_PATH}: ${msg}`);
-	}
-	const value = parsed && typeof parsed === "object" && !Array.isArray(parsed)
-		? parsed as Record<string, unknown>
-		: null;
-	cachedConfigRoot = { signature, value };
-	return value;
-}
 
 export interface SsrfConfig {
 	allowRanges: string[];
@@ -66,11 +27,10 @@ const DEFAULT_DOMAIN_POLICY: DomainPolicy = { allow: [], deny: [] };
 export function loadFetchContentDomainPolicy(): DomainPolicy {
 	let parsed: Record<string, unknown> | null;
 	try {
-		parsed = loadConfigRoot();
+		parsed = loadConfig();
 	} catch {
 		return { ...DEFAULT_DOMAIN_POLICY };
 	}
-	if (!parsed) return { ...DEFAULT_DOMAIN_POLICY };
 	const fetchContent = parsed.fetchContent;
 	if (fetchContent === undefined || fetchContent === null) return { ...DEFAULT_DOMAIN_POLICY };
 	if (typeof fetchContent !== "object" || Array.isArray(fetchContent)) {
@@ -116,11 +76,10 @@ function normalizeDomainEntry(entry: string): string | null {
 export function loadSsrfConfig(): SsrfConfig {
 	let parsed: Record<string, unknown> | null;
 	try {
-		parsed = loadConfigRoot();
+		parsed = loadConfig();
 	} catch {
 		return { allowRanges: [], trustEnvProxy: false };
 	}
-	if (!parsed) return { allowRanges: [], trustEnvProxy: false };
 	const ssrf = parsed.ssrf;
 	if (ssrf === undefined || ssrf === null) return { allowRanges: [], trustEnvProxy: false };
 	if (typeof ssrf !== "object" || Array.isArray(ssrf)) {
@@ -344,7 +303,7 @@ function assertPublicAddress(address: string, hostname: string, allowRanges: Par
 	if (isInAllowedRange(normalized, ipVersion, allowRanges)) return;
 	if (ipVersion === 4 && isBlockedIPv4(normalized)) {
 		const hint = isFakeIpProxyAddress(normalized)
-			? '. This address is in 198.18.0.0/15, commonly used by TUN/fake-IP proxies. If that matches your setup, configure ssrf.allowRanges with ["198.18.0.0/15"] in web-search.json.'
+			? '. This address is in 198.18.0.0/15, commonly used by TUN/fake-IP proxies. If that matches your setup, configure ssrf.allowRanges with ["198.18.0.0/15"] in web-search.toml.'
 			: "";
 		throw new Error(`Blocked internal address for ${hostname}: ${normalized}${hint}`);
 	}

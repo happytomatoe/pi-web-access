@@ -7,10 +7,7 @@ import { canAttachImages } from "./feature-config.ts";
 import { isGeminiWebAvailable, queryWithCookies } from "./gemini-web.ts";
 import { queryGeminiApiWithVideo, getApiKey, fetchGeminiApi, getVersionedApiBase, getUploadBase, redactGeminiApiResponse } from "./gemini-api.ts";
 import { extractHeadingTitle, type ExtractedContent, type ExtractOptions, type FrameResult } from "./extract.ts";
-import { parse as parseToml } from "smol-toml";
-import { readExecError, trimErrorText, mapFfmpegError, getWebSearchConfigPath } from "./utils.ts";
-
-const CONFIG_PATH = getWebSearchConfigPath();
+import { readExecError, trimErrorText, mapFfmpegError, loadConfig } from "./utils.ts";
 
 const DEFAULT_VIDEO_PROMPT = `Extract the complete content of this video. Include:
 1. Video title (infer from content if not explicit), duration
@@ -77,21 +74,8 @@ let cachedVideoConfig: VideoConfig | null = null;
 
 function loadVideoConfig(): VideoConfig {
 	if (cachedVideoConfig) return cachedVideoConfig;
-	if (!existsSync(CONFIG_PATH)) {
-		cachedVideoConfig = { ...VIDEO_CONFIG_DEFAULTS };
-		return cachedVideoConfig;
-	}
-
-	const rawText = readFileSync(CONFIG_PATH, "utf-8");
-	let raw: { video?: { enabled?: boolean; preferredModel?: string; maxSizeMB?: number } };
-	try {
-		raw = parseToml(rawText) as { video?: { enabled?: boolean; preferredModel?: string; maxSizeMB?: number } };
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
-	}
-
-	const v = raw.video ?? {};
+	const raw = loadConfig();
+	const v = (raw.video as Record<string, unknown>) ?? {};
 	cachedVideoConfig = {
 		enabled: normalizeEnabled(v.enabled, VIDEO_CONFIG_DEFAULTS.enabled),
 		preferredModel: normalizePreferredModel(v.preferredModel, VIDEO_CONFIG_DEFAULTS.preferredModel),
