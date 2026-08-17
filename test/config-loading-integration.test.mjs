@@ -10,7 +10,7 @@
  */
 import { describe, it, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 
@@ -22,10 +22,10 @@ const CONFIG_PATH = join(TMP, "web-search.toml");
 function writeAndParse(tomlContent) {
   writeFileSync(CONFIG_PATH, tomlContent, "utf-8");
   // Use dynamic import to load smol-toml from pi's node_modules
+  const configStr = readFileSync(CONFIG_PATH, "utf-8");
   const script = `
     import("smol-toml").then(({ parse }) => {
-      const fs = require("fs");
-      const raw = parse(fs.readFileSync("${CONFIG_PATH.replace(/\\/g, "\\\\")}", "utf-8"));
+      const raw = parse(${JSON.stringify(configStr)});
       console.log(JSON.stringify(raw));
     });
   `;
