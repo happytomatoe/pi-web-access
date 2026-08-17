@@ -25,7 +25,7 @@
 ## Install
 
 ```bash
-pi install git:https://github.com/happytomatoe/pi-web-access
+pi install git:github.com/happytomatoe/pi-web-access
 ```
 
 Works immediately with no API keys — Exa MCP provides zero-config search. If Pi has Codex auth from `/login`, OpenAI search can also work without a separate key. For more providers or direct API access, add keys to `~/.pi/web-search.toml`:
