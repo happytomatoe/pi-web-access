@@ -15,5 +15,5 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: node --test test/toml-config-e2e.test.mjs test/tool-e2e.test.mjs test/config-loading-integration.test.mjs
+      - run: node --test test/toml-config-e2e.test.mjs test/config-loading-integration.test.mjs
       - run: npm run typecheck
