@@ -187,26 +187,8 @@ interface CuratorBootstrap {
 	timeoutSeconds: number;
 }
 
-function parseConfigRoot(raw: string): Record<string, unknown> {
-	let parsed: unknown;
-	try {
-		parsed = parseToml(raw);
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse ${WEB_SEARCH_CONFIG_PATH}: ${message}`);
-	}
-	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-		throw new Error(`Invalid config in ${WEB_SEARCH_CONFIG_PATH}: expected an object`);
-	}
-	return parsed as Record<string, unknown>;
-}
-
-
 function saveConfig(updates: Partial<WebSearchConfig>): void {
-	let config: Record<string, unknown> = {};
-	if (existsSync(WEB_SEARCH_CONFIG_PATH)) {
-		config = parseConfigRoot(readFileSync(WEB_SEARCH_CONFIG_PATH, "utf-8"));
-	}
+	const config = loadConfig();
 
 	Object.assign(config, updates);
 	const dir = getWebSearchConfigDir();
@@ -572,7 +554,7 @@ interface PendingCurate {
 const DEFAULT_MAX_INLINE_CONTENT_CHARS = 30_000;
 const MAX_INLINE_CONTENT_CHARS = 200_000;
 
-function getMaxInlineContentChars(config = loadConfig()): number {
+function getMaxInlineContentChars(config: Record<string, unknown> = loadConfig()): number {
 	const value = config.maxInlineContentChars;
 	if (typeof value !== "number" || !Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
 		return DEFAULT_MAX_INLINE_CONTENT_CHARS;
@@ -2661,7 +2643,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	if (getSearchContentEnabled) {
-		const maxInlineContentChars = getMaxInlineContentChars(initConfig);
+		const maxInlineContentChars = getMaxInlineContentChars(initConfig as Record<string, unknown>);
 		pi.registerTool({
 		name: toolNames.getSearchContent,
 		label: "Get Search Content",

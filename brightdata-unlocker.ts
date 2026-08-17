@@ -43,9 +43,6 @@ function parseFailureDetail(err: unknown): string {
 }
 
 
-export function clearBrightDataUnlockerConfigCache(): void {
-	cachedConfig = null;
-}
 
 function normalizeZone(value: unknown): string | null {
 	if (typeof value !== "string") return null;

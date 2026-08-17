@@ -54,10 +54,6 @@ interface ParallelSearchOptions extends SearchOptions {
 
 
 
-export function clearParallelConfigCache(): void {
-	cachedConfig = null;
-}
-
 function normalizeApiKey(value: unknown): string | null {
 	if (typeof value !== "string") return null;
 	const normalized = value.trim();

@@ -18,7 +18,8 @@ export function normalizeChromeProfile(value: unknown): string | undefined {
 
 
 export function getChromeProfileFromConfig(): string | undefined {
-	return loadConfig().chromeProfile;
+	const value = loadConfig().chromeProfile;
+	return typeof value === "string" ? value : undefined;
 }
 
 export function isBrowserCookieAccessAllowed(): boolean {
