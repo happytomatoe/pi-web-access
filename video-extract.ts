@@ -7,6 +7,7 @@ import { canAttachImages } from "./feature-config.ts";
 import { isGeminiWebAvailable, queryWithCookies } from "./gemini-web.ts";
 import { queryGeminiApiWithVideo, getApiKey, fetchGeminiApi, getVersionedApiBase, getUploadBase, redactGeminiApiResponse } from "./gemini-api.ts";
 import { extractHeadingTitle, type ExtractedContent, type ExtractOptions, type FrameResult } from "./extract.ts";
+import { parse as parseToml } from "smol-toml";
 import { readExecError, trimErrorText, mapFfmpegError, getWebSearchConfigPath } from "./utils.ts";
 
 const CONFIG_PATH = getWebSearchConfigPath();
@@ -84,7 +85,7 @@ function loadVideoConfig(): VideoConfig {
 	const rawText = readFileSync(CONFIG_PATH, "utf-8");
 	let raw: { video?: { enabled?: boolean; preferredModel?: string; maxSizeMB?: number } };
 	try {
-		raw = JSON.parse(rawText) as { video?: { enabled?: boolean; preferredModel?: string; maxSizeMB?: number } };
+		raw = parseToml(rawText) as { video?: { enabled?: boolean; preferredModel?: string; maxSizeMB?: number } };
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		throw new Error(`Failed to parse ${CONFIG_PATH}: ${message}`);
