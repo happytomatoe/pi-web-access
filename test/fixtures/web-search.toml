@@ -1,0 +1,7 @@
+# Test configuration for e2e tool tests
+
+[video]
+enabled = false
+
+[pdf]
+enabled = false

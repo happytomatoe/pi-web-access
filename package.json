@@ -56,8 +56,6 @@
     "unpdf": "^1.6.2"
   },
   "peerDependencies": {
-    "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-tui": "*"
   },
   "pi": {
