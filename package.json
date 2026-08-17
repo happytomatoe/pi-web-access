@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
+    "test:ci": "node --test test/toml-config-e2e.test.mjs test/config-loading-integration.test.mjs",
+    "test:e2e": "node --test test/tool-e2e.test.mjs",
     "typecheck": "tsc",
     "audit:runtime": "npm audit --omit=dev --omit=peer"
   },
