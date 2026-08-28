@@ -8,6 +8,7 @@ import { getWebSearchConfigPath } from "./utils.ts";
 import { loadConfig } from "./utils.ts";
 
 const CONFIG_PATH = getWebSearchConfigPath();
+const DEFAULT_BASE_URL = "https://api.firecrawl.dev";
 const DEFAULT_API_VERSION = "v2";
 const EXTRACT_TIMEOUT_MS = 60_000;
 const SEARCH_TIMEOUT_MS = 60_000;
@@ -87,21 +88,14 @@ function normalizeBaseUrl(value: unknown): string | null {
 }
 
 function getBaseUrl(): string | null {
-	return normalizeBaseUrl(process.env.FIRECRAWL_BASE_URL) ?? normalizeBaseUrl(loadConfig().firecrawlBaseUrl);
+	return normalizeBaseUrl(process.env.FIRECRAWL_BASE_URL) ?? normalizeBaseUrl(loadConfig().firecrawlBaseUrl) ?? DEFAULT_BASE_URL;
 }
 
 function requireBaseUrl(): string {
 	const baseUrl = getBaseUrl();
-	if (!baseUrl) {
-		throw new Error(
-			"Firecrawl base URL not configured. Either:\n" +
-			`  1. Set firecrawlBaseUrl in ${CONFIG_PATH}\n` +
-			"  2. Set FIRECRAWL_BASE_URL environment variable",
-		);
-	}
+	if (!baseUrl) throw new Error(`Invalid Firecrawl base URL in ${CONFIG_PATH}`);
 	return baseUrl;
 }
-
 function getApiVersion(): FirecrawlApiVersion {
 	const environmentValue = typeof process.env.FIRECRAWL_API_VERSION === "string"
 		? process.env.FIRECRAWL_API_VERSION.trim()
